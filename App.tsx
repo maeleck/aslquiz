@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { ALPHABET, JSL_ALPHABET, JSL_KATAKANA_ALPHABET, ASL_CULTURE_QUOTES, JSL_CULTURE_QUOTES, FLUENCY_BASE_COST, FLUENCY_COST_MULTIPLIER } from './constants';
-import type { AlphabetSign, Language, JSLScript } from './types';
+import { ALPHABET, JSL_ALPHABET, JSL_KATAKANA_ALPHABET, ASL_CULTURE_QUOTES, JSL_CULTURE_QUOTES, KANJI_CULTURE_QUOTES, FLUENCY_BASE_COST, FLUENCY_COST_MULTIPLIER, KANJI_QUIZ_DATA } from './constants';
+import type { AlphabetSign, Language, JSLScript, KanjiLevel } from './types';
 import { StatsDisplay } from './components/StatsDisplay';
 import { QuizZone } from './components/QuizZone';
 import { FluencyZone } from './components/FluencyZone';
@@ -20,22 +20,22 @@ const STORAGE_KEY = 'aslJslQuizProgress';
 const initialGameState: Record<Language, GameState> = {
   ASL: { score: 0, fluencyLevel: 0, currentQuote: 'Click "Get a Random Fact" to learn about ASL culture!', streak: 0 },
   JSL: { score: 0, fluencyLevel: 0, currentQuote: 'Click "Get a Random Fact" to learn about JSL culture!', streak: 0 },
+  Kanji: { score: 0, fluencyLevel: 0, currentQuote: 'Click "Get a Random Fact" to learn about Kanji!', streak: 0 },
 };
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ASL');
   const [jslScript, setJslScript] = useState<JSLScript>('Hiragana');
+  const [kanjiLevel, setKanjiLevel] = useState<KanjiLevel>(1);
   
   const [gameStates, setGameStates] = useState<Record<Language, GameState>>(() => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         const savedState = window.localStorage.getItem(STORAGE_KEY);
         if (savedState) {
-          // Basic validation to ensure the loaded state has the expected shape
           const parsed = JSON.parse(savedState);
-          if (parsed.ASL && parsed.JSL) {
-            return parsed;
-          }
+          // Merge saved state with initial state to ensure all language keys exist
+          return { ...initialGameState, ...parsed };
         }
       }
     } catch (error) {
@@ -46,8 +46,10 @@ export default function App() {
 
   const [currentSign, setCurrentSign] = useState<AlphabetSign | null>(null);
   const [choices, setChoices] = useState<string[]>([]);
+  const [correctAnswer, setCorrectAnswer] = useState<string>('');
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ choice: string, correct: boolean } | null>(null);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -87,46 +89,73 @@ export default function App() {
   const pointsPerCorrectAnswer = 1 + fluencyLevel;
   const costToGetFact = Math.ceil(FLUENCY_BASE_COST * Math.pow(FLUENCY_COST_MULTIPLIER, fluencyLevel));
 
-  const generateNewQuestion = useCallback((currentLang: Language, currentScript: JSLScript) => {
-    let sourceAlphabet: AlphabetSign[];
-    if (currentLang === 'ASL') {
-      sourceAlphabet = ALPHABET;
-    } else {
-      sourceAlphabet = currentScript === 'Hiragana' ? JSL_ALPHABET : JSL_KATAKANA_ALPHABET;
-    }
-
-    const correctSign = sourceAlphabet[Math.floor(Math.random() * sourceAlphabet.length)];
-    
-    const distractors: string[] = [];
-    const alphabetLetters = sourceAlphabet.map(s => s.letter);
-    while (distractors.length < 3) {
-      const randomLetter = alphabetLetters[Math.floor(Math.random() * alphabetLetters.length)];
-      if (randomLetter !== correctSign.letter && !distractors.includes(randomLetter)) {
-        distractors.push(randomLetter);
-      }
-    }
-
-    const allChoices = [correctSign.letter, ...distractors];
-    // Fisher-Yates shuffle
-    for (let i = allChoices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
-    }
-
-    setCurrentSign(correctSign);
-    setChoices(allChoices);
+  const generateNewQuestion = useCallback((currentLang: Language, currentScript: JSLScript, currentKanjiLevel: KanjiLevel) => {
+    setIsGenerating(true);
     setIsAnswered(false);
     setFeedback(null);
+    setCurrentSign(null);
+
+    if (currentLang === 'Kanji') {
+        const levelQuestions = KANJI_QUIZ_DATA[currentKanjiLevel];
+        const question = levelQuestions[Math.floor(Math.random() * levelQuestions.length)];
+        const { kanji, meaning, romaji, distractors } = question;
+
+        const allChoices = [meaning, ...distractors];
+        for (let i = allChoices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
+        }
+
+        setCurrentSign({ letter: kanji, imageUrl: '', romaji: romaji });
+        setChoices(allChoices);
+        setCorrectAnswer(meaning);
+        setIsGenerating(false);
+
+    } else {
+        let sourceAlphabet: AlphabetSign[];
+        const isJSL = currentLang === 'JSL';
+        const answerProperty = isJSL ? 'romaji' : 'letter';
+
+        if (isJSL) {
+            sourceAlphabet = currentScript === 'Hiragana' ? JSL_ALPHABET : JSL_KATAKANA_ALPHABET;
+        } else {
+            sourceAlphabet = ALPHABET;
+        }
+
+        const correctSign = sourceAlphabet[Math.floor(Math.random() * sourceAlphabet.length)];
+        const correctAnswerValue = correctSign[answerProperty]!;
+        
+        const allPossibleAnswers = sourceAlphabet.map(s => s[answerProperty]!).filter(Boolean);
+        const distractors: string[] = [];
+
+        while (distractors.length < 3) {
+            const randomAnswer = allPossibleAnswers[Math.floor(Math.random() * allPossibleAnswers.length)];
+            if (randomAnswer !== correctAnswerValue && !distractors.includes(randomAnswer)) {
+                distractors.push(randomAnswer);
+            }
+        }
+
+        const allChoices = [correctAnswerValue, ...distractors];
+        for (let i = allChoices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
+        }
+
+        setCurrentSign(correctSign);
+        setChoices(allChoices);
+        setCorrectAnswer(correctAnswerValue);
+        setIsGenerating(false);
+    }
   }, []);
 
   useEffect(() => {
-    generateNewQuestion(language, jslScript);
-  }, [language, jslScript, generateNewQuestion]);
+    generateNewQuestion(language, jslScript, kanjiLevel);
+  }, [language, jslScript, kanjiLevel, generateNewQuestion]);
 
   const handleChoiceSelection = useCallback((selectedLetter: string) => {
     if (isAnswered || !currentSign) return;
 
-    const isCorrect = selectedLetter === currentSign.letter;
+    const isCorrect = selectedLetter === correctAnswer;
     setIsAnswered(true);
     setFeedback({ choice: selectedLetter, correct: isCorrect });
 
@@ -150,12 +179,12 @@ export default function App() {
     }
 
     setTimeout(() => {
-      generateNewQuestion(language, jslScript);
+      generateNewQuestion(language, jslScript, kanjiLevel);
     }, isCorrect ? 1000 : 1500);
-  }, [isAnswered, currentSign, pointsPerCorrectAnswer, generateNewQuestion, language, jslScript]);
+  }, [isAnswered, currentSign, correctAnswer, pointsPerCorrectAnswer, generateNewQuestion, language, jslScript, kanjiLevel]);
   
   const handleSkipQuestion = useCallback(() => {
-    if (isAnswered) return;
+    if (isAnswered || isGenerating) return;
     setGameStates(prevStates => ({
         ...prevStates,
         [language]: {
@@ -163,12 +192,25 @@ export default function App() {
             streak: 0,
         }
     }));
-    generateNewQuestion(language, jslScript);
-  }, [isAnswered, generateNewQuestion, language, jslScript]);
+    generateNewQuestion(language, jslScript, kanjiLevel);
+  }, [isAnswered, isGenerating, generateNewQuestion, language, jslScript, kanjiLevel]);
 
   const handleGetFact = useCallback(() => {
     if (score >= costToGetFact) {
-      const quoteSource = language === 'ASL' ? ASL_CULTURE_QUOTES : JSL_CULTURE_QUOTES;
+      let quoteSource: string[];
+      switch(language) {
+          case 'ASL':
+              quoteSource = ASL_CULTURE_QUOTES;
+              break;
+          case 'JSL':
+              quoteSource = JSL_CULTURE_QUOTES;
+              break;
+          case 'Kanji':
+              quoteSource = KANJI_CULTURE_QUOTES;
+              break;
+          default:
+              quoteSource = ASL_CULTURE_QUOTES;
+      }
       const newQuote = quoteSource[Math.floor(Math.random() * quoteSource.length)];
 
       setGameStates(prevStates => ({
@@ -186,13 +228,24 @@ export default function App() {
   const handleLanguageChange = (newLang: Language) => {
     if (newLang !== language) {
         setLanguage(newLang);
-        setJslScript('Hiragana');
+        if (newLang === 'JSL') {
+          setJslScript('Hiragana');
+        }
+        if (newLang === 'Kanji') {
+          setKanjiLevel(1);
+        }
     }
   };
 
   const handleScriptChange = (newScript: JSLScript) => {
     if (newScript !== jslScript) {
       setJslScript(newScript);
+    }
+  };
+
+  const handleKanjiLevelChange = (newLevel: KanjiLevel) => {
+    if (newLevel !== kanjiLevel) {
+      setKanjiLevel(newLevel);
     }
   };
 
@@ -203,7 +256,15 @@ export default function App() {
   const handleResetProgress = () => {
     if (window.confirm('Are you sure you want to reset all your progress? This action cannot be undone.')) {
         setGameStates(initialGameState);
+        // also reset language to default
+        setLanguage('ASL');
     }
+  };
+
+  const getPageTitle = () => {
+    if (language === 'Kanji') return `Kanji Quiz: Level ${kanjiLevel}`;
+    if (language === 'JSL') return `JSL Quiz: ${jslScript}`;
+    return 'ASL Quiz';
   };
 
   return (
@@ -211,7 +272,7 @@ export default function App() {
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-8">
         <header className="text-center mb-8 relative">
           <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-400">
-            {language === 'ASL' ? 'ASL Quiz' : `JSL Quiz: ${jslScript}`}
+            {getPageTitle()}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
             Guess the sign, earn points, and grow your fluency!
@@ -222,8 +283,10 @@ export default function App() {
           <LanguageSelector
             language={language}
             jslScript={jslScript}
+            kanjiLevel={kanjiLevel}
             onLanguageChange={handleLanguageChange}
             onScriptChange={handleScriptChange}
+            onKanjiLevelChange={handleKanjiLevelChange}
           />
         </header>
         
@@ -241,6 +304,8 @@ export default function App() {
                 language={language}
                 pointsPerCorrectAnswer={pointsPerCorrectAnswer}
                 onSkip={handleSkipQuestion}
+                isGenerating={isGenerating}
+                correctAnswer={correctAnswer}
               />
             </div>
             
