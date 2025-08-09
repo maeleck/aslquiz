@@ -1,7 +1,6 @@
-import type { AlphabetSign } from './types';
+import type { AlphabetSign, VocabTopic } from './types';
 
-// Template for alphabet signs.
-// The image URLs have been updated to a reliable source.
+// The full alphabet, which will be used to create sets.
 export const ALPHABET: AlphabetSign[] = [
   { letter: 'A', imageUrl: 'https://www.lifeprint.com/asl101/fingerspelling/abc-gifs/a.gif' },
   { letter: 'B', imageUrl: 'https://www.lifeprint.com/asl101/fingerspelling/abc-gifs/b.gif' },
@@ -31,6 +30,14 @@ export const ALPHABET: AlphabetSign[] = [
   { letter: 'Z', imageUrl: 'https://www.lifeprint.com/asl101/fingerspelling/abc-gifs/z.gif' },
 ];
 
+export const MAX_ALPHABET_LEVEL = 4;
+
+export const WORDS_BY_LEVEL: { [key: number]: string[] } = {
+  2: ["HI", "GO", "BE", "AS", "AT", "BY", "DO", "IF", "IN", "IS", "IT", "ME", "MY", "NO", "OF", "ON", "OR", "SO", "TO", "UP", "US", "WE"],
+  3: ["CAT", "DOG", "SUN", "FUN", "RUN", "EAT", "ASK", "BUY", "CAN", "DAY", "FLY", "GET", "HEY", "HOW", "JOB", "LET", "MAN", "NEW", "NOT", "NOW", "OLD", "ONE", "OUT", "SAY", "SEE", "SHE", "THE", "TRY", "USE", "WAY", "WHO", "WHY", "YES", "YOU"],
+  4: ["LOVE", "HOME", "WORK", "PLAY", "HELP", "GOOD", "BABY", "BACK", "BALL", "BANK", "BEAR", "BIRD", "BLUE", "BOAT", "BOOK", "BOTH", "CALL", "CARD", "CARE", "CITY", "COME", "COOK", "COOL", "DARK", "DATE", "DEAL", "DEAR", "DEEP", "DOOR", "DOWN", "DRAW", "DREAM", "DRIVE", "EASY", "EDGE", "ELSE", "EVEN", "EVER", "FACE", "FACT", "FAIL", "FALL", "FARM", "FAST", "FEEL", "FILE", "FILL", "FILM", "FIND", "FINE", "FIRE", "FISH"]
+};
+
 export const COST_PER_FACT = 25;
 export const POINTS_PER_CORRECT_ANSWER = 5;
 
@@ -53,4 +60,35 @@ export const ASL_CULTURE_QUOTES: string[] = [
     "Gallaudet University, located in Washington, D.C., is the only university in the world specifically for Deaf and hard of hearing students.",
     "Many Deaf people consider themselves part of a cultural and linguistic minority, not as disabled individuals.",
     "A 'name sign' in Deaf culture is a unique sign given to a person, serving as their name within the community."
+];
+
+export const VOCAB_TREE: VocabTopic[] = [
+    {
+        id: 'basics',
+        label: 'Basics',
+        cost: 0,
+        iconId: 'graduation-cap',
+        prerequisites: [],
+    },
+    {
+        id: 'family',
+        label: 'Family',
+        cost: 50,
+        iconId: 'users',
+        prerequisites: ['basics'],
+    },
+    {
+        id: 'food',
+        label: 'Food',
+        cost: 75,
+        iconId: 'cake',
+        prerequisites: ['basics'],
+    },
+    {
+        id: 'animals',
+        label: 'Animals',
+        cost: 100,
+        iconId: 'paw-print',
+        prerequisites: ['family', 'food'],
+    }
 ];
