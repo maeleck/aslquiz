@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from './Card';
-import type { AlphabetSign, Language } from '../types';
+import type { AlphabetSign } from '../types';
 
 interface QuizZoneProps {
   sign: AlphabetSign | null;
@@ -9,14 +9,13 @@ interface QuizZoneProps {
   onSelectChoice: (choice: string) => void;
   feedback: { choice: string, correct: boolean } | null;
   isAnswered: boolean;
-  language: Language;
   pointsPerCorrectAnswer: number;
   onSkip: () => void;
   isGenerating: boolean;
   correctAnswer: string;
 }
 
-export const QuizZone: React.FC<QuizZoneProps> = ({ sign, choices, onSelectChoice, feedback, isAnswered, language, pointsPerCorrectAnswer, onSkip, isGenerating, correctAnswer }) => {
+export const QuizZone: React.FC<QuizZoneProps> = ({ sign, choices, onSelectChoice, feedback, isAnswered, pointsPerCorrectAnswer, onSkip, isGenerating, correctAnswer }) => {
   
   if (isGenerating || !sign) {
     return (
@@ -50,7 +49,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({ sign, choices, onSelectChoic
   return (
     <Card className="flex flex-col items-center h-full">
       <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-1">
-        {language === 'Kanji' ? 'What is the meaning of this Kanji?' : 'What character is this sign?'}
+        What character is this sign?
       </h2>
       
       <div className="h-8 flex items-center justify-center my-1 text-center">
@@ -66,35 +65,15 @@ export const QuizZone: React.FC<QuizZoneProps> = ({ sign, choices, onSelectChoic
       </div>
       
       <div className="w-full max-w-xs aspect-square bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
-        {language === 'Kanji' ? (
-             <span className="text-9xl font-serif text-slate-800 dark:text-slate-200 select-none" lang="ja">{sign.letter}</span>
-        ) : language === 'JSL' ? (
-           <div
-              className="w-full h-full"
-              role="img"
-              aria-label={`Japanese sign language sign for ${sign.letter}`}
-              style={{
-                backgroundImage: `url(${sign.imageUrl})`,
-                backgroundSize: '133.33% 100%',
-                backgroundPosition: 'right center',
-                backgroundRepeat: 'no-repeat',
-              }}
-            />
-        ) : (
-            <img 
-              src={sign.imageUrl} 
-              alt={`American sign language sign for ${sign.letter}`}
-              className="w-full h-full object-contain p-2"
-            />
-        )}
+        <img 
+          src={sign.imageUrl} 
+          alt={`American sign language sign for ${sign.letter}`}
+          className="w-full h-full object-contain p-2"
+        />
       </div>
       
       <div className="h-8 flex items-center justify-center mt-2 w-full max-w-xs">
-          {isAnswered && language === 'Kanji' && sign?.romaji && (
-              <p className="text-2xl font-semibold text-sky-600 dark:text-sky-400" lang="ja-Latn" aria-label={`Pronunciation: ${sign.romaji}`}>
-                  {sign.romaji}
-              </p>
-          )}
+          {/* Placeholder for potential future content like pronunciation guides */}
       </div>
       
       <div className="w-full max-w-xs flex justify-end">
