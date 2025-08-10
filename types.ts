@@ -13,3 +13,28 @@ export interface VocabTopic {
     iconId: 'graduation-cap' | 'users' | 'cake' | 'paw-print';
     prerequisites: string[];
 }
+
+export interface DictionaryEntry {
+  term: string;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+}
+
+export interface Phrase {
+  text: string;
+  signs: DictionaryEntry[];
+}
+
+export interface StoryStep {
+  id: number;
+  phrase: Phrase;
+  prompt: string;
+  choices: string[];
+  correctChoice: string;
+}
+
+export interface Story {
+  id: string;
+  title: string;
+  steps: StoryStep[];
+}

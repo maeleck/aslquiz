@@ -1,7 +1,10 @@
+
+
 import React from 'react';
 import { Card } from './Card';
 import type { Category, SubCategory, VocabTopic } from '../types';
 import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon } from './Icons';
+import { VOCAB_BY_TOPIC } from '../constants';
 
 interface SubCategorySelectorProps {
   category: Category;
@@ -10,12 +13,12 @@ interface SubCategorySelectorProps {
   onBack?: () => void;
 }
 
-const subCategories: { id: SubCategory; label: string; description: string; icon: React.FC<{className?: string}> }[] = [
-  { id: 'quiz', label: 'Quiz', description: 'Guess the letter from the sign.', icon: QuestionMarkCircleIcon },
-  { id: 'reversal-quiz', label: 'Reversal Quiz', description: 'Guess the sign from the letter.', icon: SwitchHorizontalIcon },
+const allSubCategories: { id: SubCategory; label: string; description: string; icon: React.FC<{className?: string}> }[] = [
+  { id: 'quiz', label: 'Quiz', description: 'Guess the {noun} from the sign.', icon: QuestionMarkCircleIcon },
+  { id: 'reversal-quiz', label: 'Reversal Quiz', description: 'Guess the sign from the {noun}.', icon: SwitchHorizontalIcon },
   { id: 'time-attack', label: 'Time Attack', description: 'Test your speed and accuracy.', icon: StopwatchIcon },
   { id: 'reversal-time-attack', label: 'Reversal Time Attack', description: 'A fast-paced reversal challenge.', icon: SwitchHorizontalIcon },
-  { id: 'matching', label: 'Matching Game', description: 'Match signs to letters.', icon: PuzzlePieceIcon },
+  { id: 'matching', label: 'Matching Game', description: 'Match signs to {noun}s.', icon: PuzzlePieceIcon },
 ];
 
 const categoryColors: { [key in Category]: { text: string; bg: string; border: string; hoverBg: string } } = {
@@ -33,13 +36,22 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
     const colors = categoryColors[topic ? 'tree' : category];
     const title = topic ? `${topic.label} Activities` : `${category.charAt(0).toUpperCase() + category.slice(1)} Activities`;
 
+    const subCategories = allSubCategories.filter(sub => {
+        if (category === 'phrases' && sub.id === 'matching') return false;
+        return true;
+    });
+
     const isEnabled = (subId: SubCategory) => {
-        // if a topic is selected, all subcategories are placeholders for now
         if (topic) {
-            return false;
+            const topicWords = VOCAB_BY_TOPIC[topic.id];
+            if (!topicWords || topicWords.length === 0) return false;
+            if (subId === 'matching' && topicWords.length < 8) return false;
+            if ((subId === 'reversal-quiz' || subId === 'reversal-time-attack') && topicWords.length < 4) return false;
+            return true;
         }
-        // Currently, only the alphabet quiz is enabled.
-        return category === 'alphabet' && subId === 'quiz';
+        if (category === 'alphabet' || category === 'vocabulary') return true;
+        if (category === 'phrases') return subId !== 'matching';
+        return false;
     }
 
   return (
@@ -60,6 +72,9 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {subCategories.map(sub => {
                 const enabled = isEnabled(sub.id);
+                const noun = category === 'alphabet' ? 'letter' : 'word';
+                const description = sub.description.replace(/{noun}/g, noun);
+                
                 return (
                     <button 
                         key={sub.id} 
@@ -74,9 +89,9 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
                            <sub.icon className={`h-6 w-6 mr-3 ${enabled ? colors.text : 'text-slate-400'}`} />
                            <h3 className={`text-xl font-bold ${enabled ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>{sub.label}</h3>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-400 flex-grow">{sub.description}</p>
+                        <p className="text-slate-600 dark:text-slate-400 flex-grow">{description}</p>
                         {!enabled && (
-                             <span className="mt-4 text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full self-start">Coming Soon</span>
+                             <span className="mt-4 text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full self-start">Not Enough Words</span>
                         )}
                     </button>
                 )
