@@ -7,13 +7,13 @@ interface CategorySelectorProps {
 }
 
 const categories: { id: Category; label: string }[] = [
+  { id: 'tree', label: 'Tree' },
   { id: 'alphabet', label: 'Alphabet' },
   { id: 'vocabulary', label: 'Vocabulary' },
   { id: 'phrases', label: 'Phrases' },
-  { id: 'tree', label: 'Tree' },
-  { id: 'collectibles', label: 'Collectibles' },
-  { id: 'dictionary', label: 'Dictionary' },
   { id: 'story', label: 'Story' },
+  { id: 'dictionary', label: 'Dictionary' },
+  { id: 'collectibles', label: 'Collectibles' },
 ];
 
 export const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onSelectCategory }) => {

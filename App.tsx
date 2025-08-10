@@ -1,8 +1,7 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, VOCAB_BY_TOPIC } from './constants';
-import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase } from './types';
+import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
+import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode } from './types';
 import { StatsDisplay } from './components/StatsDisplay';
 import { QuizZone } from './components/QuizZone';
 import { CollectiblesZone } from './components/CollectiblesZone';
@@ -11,12 +10,16 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { CategorySelector } from './components/CategorySelector';
 import { PlaceholderZone } from './components/PlaceholderZone';
 import { SubCategorySelector } from './components/SubCategorySelector';
-import { BookOpenIcon, CogIcon, SparklesIcon, SitemapIcon } from './components/Icons';
+import { BookOpenIcon, CogIcon, SparklesIcon, SitemapIcon, QuestionMarkCircleIcon } from './components/Icons';
 import { TreeZone } from './components/TreeZone';
 import { OptionsModal } from './components/OptionsModal';
 import { DictionaryZone } from './components/DictionaryZone';
 import { MatchingGameZone } from './components/MatchingGameZone';
 import { StoryZone } from './components/StoryZone';
+import { LevelSelectorZone } from './components/LevelSelectorZone';
+import { HelpModal } from './components/HelpModal';
+import { TreeHomeZone } from './components/TreeHomeZone';
+import { CommonalityLevelSelectorZone } from './components/CommonalityLevelSelectorZone';
 
 
 interface GameState {
@@ -74,16 +77,23 @@ export default function App() {
   const [feedback, setFeedback] = useState<{ choice: string, correct: boolean } | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
-  const [activeCategory, setActiveCategory] = useState<Category>('alphabet');
+  const [activeCategory, setActiveCategory] = useState<Category>('tree');
   const [activeSubCategory, setActiveSubCategory] = useState<SubCategory | null>(null);
   const [activeTopic, setActiveTopic] = useState<VocabTopic | null>(null);
+  const [activeVocabLevel, setActiveVocabLevel] = useState<number | null>(null);
+  const [treeSortMode, setTreeSortMode] = useState<TreeSortMode | null>(null);
   const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [currentLevel, setCurrentLevel] = useState<number>(1);
   const [userAnswer, setUserAnswer] = useState<string>('');
 
   const [timeAttackState, setTimeAttackState] = useState<TimeAttackState>(null);
 
+  const [activeLevelWordPool, setActiveLevelWordPool] = useState<DictionaryEntry[] | null>(null);
+  const [currentWordSet, setCurrentWordSet] = useState<DictionaryEntry[] | null>(null);
+
   const alphabetMap = useMemo(() => new Map(ALPHABET.map(sign => [sign.letter, sign])), []);
+  const wordMap = useMemo(() => new Map(WORD_DICTIONARY.map(entry => [entry.term, entry])), []);
   
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -129,7 +139,6 @@ export default function App() {
       setGameState(prev => ({ ...prev, points: prev.points + (timeAttackState?.score || 0) }));
     }
   }, [timeAttackState]);
-
 
   const { points, streak, collectedFacts, unlockedTopics } = gameState;
 
@@ -179,10 +188,13 @@ export default function App() {
             setCurrentQuestionSigns(signs);
             setCorrectAnswer(word);
         }
-    } else if (category === 'vocabulary' || (category === 'tree' && activeTopic)) {
-        const vocabList = (category === 'tree' && activeTopic)
-            ? VOCAB_BY_TOPIC[activeTopic.id] || []
-            : WORD_DICTIONARY;
+    } else if (category === 'vocabulary' || category === 'tree') {
+        let vocabList: DictionaryEntry[] = [];
+        if (category === 'tree' && currentWordSet) {
+            vocabList = currentWordSet;
+        } else { // 'vocabulary' review tab
+             vocabList = WORD_DICTIONARY;
+        }
         
         if (vocabList.length < 4 && (mode === 'reversal' || activeSubCategory?.includes('reversal'))) {
             console.error("Not enough vocabulary words for a reversal quiz.");
@@ -190,7 +202,7 @@ export default function App() {
             return;
         }
          if (vocabList.length < 1) {
-            console.error("No vocabulary words available for this topic.");
+            console.error("No vocabulary words available for this topic/set.");
             setIsGenerating(false);
             return;
         }
@@ -206,6 +218,10 @@ export default function App() {
                 }
                 attempts++;
             }
+             // Ensure enough distractors were found
+            while(distractors.length < 3 && distractors.length < vocabList.length - 1) {
+                distractors.push(correctEntry);
+            }
             setChoiceVocab(shuffleArray([correctEntry, ...distractors]));
         } else { // Normal vocab quiz
             const correctEntry = vocabList[Math.floor(Math.random() * vocabList.length)];
@@ -219,6 +235,10 @@ export default function App() {
                     distractors.push(randomWord);
                 }
                 attempts++;
+            }
+            // Ensure enough distractors were found
+            while(distractors.length < 3 && distractors.length < vocabList.length -1) {
+                distractors.push(correctEntry.term);
             }
             setChoices(shuffleArray([correctEntry.term, ...distractors]));
         }
@@ -255,7 +275,7 @@ export default function App() {
 
 
     setIsGenerating(false);
-  }, [alphabetMap, activeTopic, activeSubCategory]);
+  }, [alphabetMap, activeSubCategory, currentWordSet]);
 
   const getQuizMode = useCallback((): 'normal' | 'reversal' => {
       return activeSubCategory === 'reversal-quiz' || activeSubCategory === 'reversal-time-attack' ? 'reversal' : 'normal';
@@ -267,6 +287,8 @@ export default function App() {
     const isPlayableCategory = ['alphabet', 'vocabulary', 'phrases', 'tree'].includes(activeCategory);
 
     if (isStandardQuiz && isPlayableCategory) {
+      // Don't generate question for 'tree' if word set isn't ready
+      if(activeCategory === 'tree' && !currentWordSet) return;
       generateNewQuestion(activeCategory, currentLevel, getQuizMode());
     } else if (!isQuizActive) {
       // Clear question state if we are not in any quiz/game mode (e.g., on category selector, or in dictionary/collectibles)
@@ -274,7 +296,7 @@ export default function App() {
       setCurrentVocabQuestion(null);
       setCurrentPhraseQuestion(null);
     }
-  }, [activeCategory, activeSubCategory, currentLevel, generateNewQuestion, getQuizMode]);
+  }, [activeCategory, activeSubCategory, currentLevel, generateNewQuestion, getQuizMode, currentWordSet]);
   
   const handleChoiceSelection = useCallback((selectedAnswer: string) => {
     if (isAnswered) return;
@@ -346,6 +368,8 @@ export default function App() {
 
   const handleStartTimeAttack = () => {
     setTimeAttackState({ isActive: true, timeLeft: 30, score: 0, isFinished: false });
+    // Don't generate question for 'tree' if word set isn't ready
+    if(activeCategory === 'tree' && !currentWordSet) return;
     generateNewQuestion(activeCategory, currentLevel, getQuizMode());
   };
 
@@ -389,23 +413,39 @@ export default function App() {
   const handleResetProgress = () => {
     if (window.confirm('Are you sure you want to reset all your progress? This action cannot be undone.')) {
         setGameState(initialGameState);
-        setActiveCategory('alphabet');
+        setActiveCategory('tree');
         setActiveSubCategory(null);
         setActiveTopic(null);
+        setActiveVocabLevel(null);
+        setTreeSortMode(null);
         setCurrentLevel(1);
         setIsOptionsOpen(false);
+        setActiveLevelWordPool(null);
+        setCurrentWordSet(null);
     }
   };
   
   const handleSelectCategory = (category: Category) => {
-      if (category === activeCategory && !['collectibles', 'dictionary', 'tree', 'story'].includes(category)) {
+      if (category === activeCategory && !['collectibles', 'dictionary', 'story'].includes(category)) {
+          // Allow re-clicking tree to go back to its home
+          if (category === 'tree') {
+            setTreeSortMode(null);
+            setActiveTopic(null);
+            setActiveVocabLevel(null);
+            setActiveLevelWordPool(null);
+            setCurrentWordSet(null);
+          }
           setActiveSubCategory(null);
           return;
       }
       setActiveCategory(category);
       setActiveSubCategory(null);
       setActiveTopic(null);
+      setActiveVocabLevel(null);
+      setTreeSortMode(null);
       setTimeAttackState(null);
+      setActiveLevelWordPool(null);
+      setCurrentWordSet(null);
   };
 
   const handleSelectSubCategory = (subCategory: SubCategory) => {
@@ -440,17 +480,84 @@ export default function App() {
       if (unlockedTopics.includes(topic.id)) {
           setActiveTopic(topic);
           setActiveSubCategory(null);
+          setActiveVocabLevel(null);
       }
   };
 
-  const handleBackToTree = () => {
+  const generateAndSetWordSubset = useCallback((wordPool: DictionaryEntry[] | null) => {
+    if (!wordPool || wordPool.length === 0) {
+        setCurrentWordSet([]);
+        return;
+    }
+    const shuffled = shuffleArray(wordPool);
+    const subset = shuffled.slice(0, 10);
+    setCurrentWordSet(subset);
+  }, []);
+
+  const handleShuffleWords = useCallback(() => {
+    generateAndSetWordSubset(activeLevelWordPool);
+  }, [activeLevelWordPool, generateAndSetWordSubset]);
+
+  const handleSelectLevel = useCallback((level: number) => {
+    setActiveVocabLevel(level);
+    setActiveSubCategory(null);
+    
+    let wordPool: DictionaryEntry[] = [];
+    if (treeSortMode === 'topic' && activeTopic) {
+        const topicData = STRUCTURED_VOCAB[activeTopic.id];
+        const levelData = topicData?.levels.find(l => l.level === level);
+        if (levelData) {
+            wordPool = levelData.words.map(word => wordMap.get(word)).filter(Boolean) as DictionaryEntry[];
+        }
+    } else if (treeSortMode === 'commonality') {
+        const levelData = VOCAB_BY_COMMONALITY.find(l => l.level === level);
+        if (levelData) {
+             wordPool = levelData.words.map(word => wordMap.get(word)).filter(Boolean) as DictionaryEntry[];
+        }
+    }
+    setActiveLevelWordPool(wordPool);
+    generateAndSetWordSubset(wordPool);
+  }, [activeTopic, treeSortMode, wordMap, generateAndSetWordSubset]);
+  
+  const handleBackToTreeHome = () => {
+    setTreeSortMode(null);
+    setActiveTopic(null);
+    setActiveVocabLevel(null);
+    setActiveLevelWordPool(null);
+    setCurrentWordSet(null);
+  };
+
+  const handleBackToTopicSelector = () => {
       setActiveTopic(null);
       setActiveSubCategory(null);
+      setActiveVocabLevel(null);
+      setActiveLevelWordPool(null);
+      setCurrentWordSet(null);
   }
+
+  const handleBackToLevelSelector = () => {
+    setActiveSubCategory(null);
+    // When going back to the level list, we are leaving the "active level" context
+    setActiveVocabLevel(null);
+    setActiveLevelWordPool(null);
+    setCurrentWordSet(null);
+  }
+
   const areAllFactsCollected = collectedFacts.length === ASL_CULTURE_QUOTES.length;
 
   const quizMode = getQuizMode();
   const isTimeAttack = activeSubCategory === 'time-attack' || activeSubCategory === 'reversal-time-attack';
+  
+  const getTopicLabel = () => {
+    if (activeCategory !== 'tree') return undefined;
+    if (treeSortMode === 'topic' && activeTopic) {
+        return `${activeTopic.label}${activeVocabLevel ? ` - Level ${activeVocabLevel}` : ''}`;
+    }
+    if (treeSortMode === 'commonality' && activeVocabLevel) {
+        return `Commonality - Level ${activeVocabLevel}`;
+    }
+    return undefined;
+  };
 
   const quizComponent = useMemo(() => (
     <QuizZone
@@ -477,7 +584,7 @@ export default function App() {
         isGenerating={isGenerating}
         correctAnswer={correctAnswer}
         isTimeAttack={isTimeAttack}
-        topicLabel={activeTopic?.label}
+        topicLabel={getTopicLabel()}
     />
   ), [
     quizMode, activeCategory, currentLevel, handleLevelChange,
@@ -485,7 +592,7 @@ export default function App() {
     choices, choiceSigns, choiceVocab, choicePhrases,
     handleChoiceSelection, handleWordSubmit, userAnswer,
     feedback, isAnswered, handleSkipQuestion, isGenerating,
-    correctAnswer, isTimeAttack, activeTopic,
+    correctAnswer, isTimeAttack, activeTopic, activeVocabLevel, treeSortMode
   ]);
 
   const TimeAttackEndScreen: React.FC = () => (
@@ -509,6 +616,14 @@ export default function App() {
         </button>
       </div>
   );
+  
+    const getWordsForMatching = () => {
+        if (activeCategory === 'tree' && currentWordSet) {
+            return currentWordSet;
+        }
+        // Let MatchingGameZone handle defaults for 'alphabet' and 'vocabulary' review.
+        return undefined;
+    };
 
   const renderContent = () => {
     const renderQuizContainer = () => {
@@ -518,7 +633,7 @@ export default function App() {
         }
 
         const currentCategoryForMatching = activeCategory === 'tree' ? 'vocabulary' : activeCategory;
-
+        
         switch (activeSubCategory) {
             case 'quiz':
             case 'reversal-quiz':
@@ -535,7 +650,17 @@ export default function App() {
                     </div>
                 );
             case 'matching':
-                return <MatchingGameZone category={currentCategoryForMatching} topic={activeTopic ?? undefined} onGameComplete={handleMatchingGameComplete} />;
+                const wordsForMatching = getWordsForMatching();
+                // Matching game needs at least 8 items for an 8-pair (16-card) board.
+                if (activeCategory === 'tree' && (!wordsForMatching || wordsForMatching.length < 8)) {
+                    return (
+                        <PlaceholderZone
+                            title="Not Enough Words"
+                            message="This level doesn't have enough words for a Matching Game. Try getting a new set of words or choose another activity."
+                        />
+                    );
+                }
+                return <MatchingGameZone category={currentCategoryForMatching} topic={activeTopic ?? undefined} onGameComplete={handleMatchingGameComplete} words={wordsForMatching} />;
         }
         return null;
     }
@@ -544,11 +669,24 @@ export default function App() {
       case 'collectibles':
         return <CollectiblesZone points={points} collectedFacts={collectedFacts} cost={COST_PER_FACT} onBuyFact={handleBuyFact} areAllFactsCollected={areAllFactsCollected} />;
       case 'tree':
-        if (activeTopic) {
-          if (!activeSubCategory) return <SubCategorySelector category='tree' topic={activeTopic} onSelect={handleSelectSubCategory} onBack={handleBackToTree} />;
-          return renderQuizContainer();
+        if (treeSortMode === 'topic') {
+            if (activeTopic) {
+                if (activeVocabLevel) {
+                    if (!activeSubCategory) return <SubCategorySelector category='tree' topic={activeTopic} level={activeVocabLevel} onSelect={handleSelectSubCategory} onBack={handleBackToLevelSelector} onShuffleWords={handleShuffleWords} />;
+                    return renderQuizContainer();
+                }
+                return <LevelSelectorZone topic={activeTopic} onSelectLevel={handleSelectLevel} onBack={handleBackToTopicSelector} />;
+            }
+            return <TreeZone unlockedTopics={unlockedTopics} points={points} onSelectTopic={handleSelectTopic} onUnlockTopic={handleUnlockTopic} onBack={handleBackToTreeHome} />;
         }
-        return <TreeZone unlockedTopics={unlockedTopics} points={points} onSelectTopic={handleSelectTopic} onUnlockTopic={handleUnlockTopic} />;
+        if (treeSortMode === 'commonality') {
+            if (activeVocabLevel) {
+                if (!activeSubCategory) return <SubCategorySelector category='tree' level={activeVocabLevel} onSelect={handleSelectSubCategory} onBack={handleBackToLevelSelector} onShuffleWords={handleShuffleWords} />;
+                return renderQuizContainer();
+            }
+            return <CommonalityLevelSelectorZone onSelectLevel={handleSelectLevel} onBack={handleBackToTreeHome} />;
+        }
+        return <TreeHomeZone onSelect={setTreeSortMode} />;
       case 'dictionary':
         return <DictionaryZone />;
       case 'story':
@@ -570,16 +708,24 @@ export default function App() {
   return (
     <>
       {isOptionsOpen && <OptionsModal onClose={() => setIsOptionsOpen(false)} onReset={handleResetProgress} />}
+      {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
       {newlyAcquiredFact && <FactModal fact={newlyAcquiredFact} onClose={handleCloseModal} />}
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-8">
         <header className="text-center mb-8 relative">
           <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-400">
-            ASL Quiz
+            ASL Clicker
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Guess the sign, earn points, and collect facts!
+            Sign, Learn, and Ascend!
           </p>
           <div className="absolute top-0 right-0 flex items-center space-x-2">
+             <button
+                onClick={() => setIsHelpOpen(true)}
+                className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900 focus:ring-sky-500 transition-colors"
+                aria-label="Open help menu"
+              >
+                <QuestionMarkCircleIcon className="h-6 w-6" />
+              </button>
              <button
                 onClick={() => setIsOptionsOpen(true)}
                 className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900 focus:ring-sky-500 transition-colors"

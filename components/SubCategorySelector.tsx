@@ -1,23 +1,24 @@
 
-
 import React from 'react';
 import { Card } from './Card';
 import type { Category, SubCategory, VocabTopic } from '../types';
-import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon } from './Icons';
-import { VOCAB_BY_TOPIC } from '../constants';
+import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon, RefreshIcon } from './Icons';
+import { STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from '../constants';
 
 interface SubCategorySelectorProps {
   category: Category;
   onSelect: (subCategory: SubCategory) => void;
   topic?: VocabTopic;
+  level?: number;
   onBack?: () => void;
+  onShuffleWords?: () => void;
 }
 
 const allSubCategories: { id: SubCategory; label: string; description: string; icon: React.FC<{className?: string}> }[] = [
   { id: 'quiz', label: 'Quiz', description: 'Guess the {noun} from the sign.', icon: QuestionMarkCircleIcon },
   { id: 'reversal-quiz', label: 'Reversal Quiz', description: 'Guess the sign from the {noun}.', icon: SwitchHorizontalIcon },
   { id: 'time-attack', label: 'Time Attack', description: 'Test your speed and accuracy.', icon: StopwatchIcon },
-  { id: 'reversal-time-attack', label: 'Reversal Time Attack', description: 'A fast-paced reversal challenge.', icon: SwitchHorizontalIcon },
+  { id: 'reversal-time-attack', label: 'Reversal Time Attack', description: 'A fast-paced reversal challenge.', icon: StopwatchIcon },
   { id: 'matching', label: 'Matching Game', description: 'Match signs to {noun}s.', icon: PuzzlePieceIcon },
 ];
 
@@ -32,21 +33,36 @@ const categoryColors: { [key in Category]: { text: string; bg: string; border: s
 };
 
 
-export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ category, onSelect, topic, onBack }) => {
+export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ category, onSelect, topic, level, onBack, onShuffleWords }) => {
     const colors = categoryColors[topic ? 'tree' : category];
-    const title = topic ? `${topic.label} Activities` : `${category.charAt(0).toUpperCase() + category.slice(1)} Activities`;
-
+    
+    let title: string;
+    let wordsForLevel: string[] = [];
     const subCategories = allSubCategories.filter(sub => {
         if (category === 'phrases' && sub.id === 'matching') return false;
         return true;
     });
 
+    if (category === 'tree' && level) {
+        if (topic) { // Topic Mode
+            title = `${topic.label} - Level ${level}`;
+            const levelData = STRUCTURED_VOCAB[topic.id]?.levels.find(l => l.level === level);
+            wordsForLevel = levelData?.words || [];
+        } else { // Commonality Mode
+            title = `Commonality - Level ${level}`;
+            const levelData = VOCAB_BY_COMMONALITY.find(l => l.level === level);
+            wordsForLevel = levelData?.words || [];
+        }
+    } else {
+        title = `${topic ? topic.label : category.charAt(0).toUpperCase() + category.slice(1)} Activities`;
+    }
+
     const isEnabled = (subId: SubCategory) => {
-        if (topic) {
-            const topicWords = VOCAB_BY_TOPIC[topic.id];
-            if (!topicWords || topicWords.length === 0) return false;
-            if (subId === 'matching' && topicWords.length < 8) return false;
-            if ((subId === 'reversal-quiz' || subId === 'reversal-time-attack') && topicWords.length < 4) return false;
+        if (category === 'tree' && level) {
+            if (wordsForLevel.length === 0) return false;
+            // The full pool of words for the level determines availability, not the random 10-word set.
+            if (subId === 'matching' && wordsForLevel.length < 8) return false;
+            if ((subId === 'reversal-quiz' || subId === 'reversal-time-attack') && wordsForLevel.length < 4) return false;
             return true;
         }
         if (category === 'alphabet' || category === 'vocabulary') return true;
@@ -61,18 +77,28 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
                 <button 
                     onClick={onBack} 
                     className="absolute left-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-md p-1"
-                    aria-label="Back to Tree"
+                    aria-label="Back to Level Selection"
                 >
-                    &larr; Back to Tree
+                    &larr; Back to Levels
                 </button>
             )}
             <h2 className={`text-2xl font-bold ${colors.text}`}>{title}</h2>
+            {onShuffleWords && (
+                <button
+                    onClick={onShuffleWords}
+                    className="absolute right-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 flex items-center gap-1.5 transition-colors"
+                    aria-label="Get new words"
+                >
+                    <RefreshIcon className="h-5 w-5" />
+                    New Words
+                </button>
+            )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {subCategories.map(sub => {
                 const enabled = isEnabled(sub.id);
-                const noun = category === 'alphabet' ? 'letter' : 'word';
+                const noun = (category === 'alphabet' || sub.label.toLowerCase().includes('alphabet')) ? 'letter' : 'word';
                 const description = sub.description.replace(/{noun}/g, noun);
                 
                 return (

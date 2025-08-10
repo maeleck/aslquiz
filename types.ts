@@ -5,6 +5,7 @@ export interface AlphabetSign {
 
 export type Category = 'alphabet' | 'vocabulary' | 'phrases' | 'tree' | 'collectibles' | 'dictionary' | 'story';
 export type SubCategory = 'quiz' | 'reversal-quiz' | 'time-attack' | 'reversal-time-attack' | 'matching';
+export type TreeSortMode = 'topic' | 'commonality';
 
 export interface VocabTopic {
     id: string;
@@ -37,4 +38,18 @@ export interface Story {
   id: string;
   title: string;
   steps: StoryStep[];
+}
+
+export interface VocabLevel {
+  level: number;
+  words: string[];
+}
+
+export interface StructuredVocabTopic {
+  label: string;
+  levels: VocabLevel[];
+}
+
+export interface StructuredVocab {
+  [key: string]: StructuredVocabTopic;
 }

@@ -1,4 +1,3 @@
-
 export * from './alphabet';
 export * from './culture';
 export * from './dictionary';

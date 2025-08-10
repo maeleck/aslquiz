@@ -1,9 +1,10 @@
 
 
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from './Card';
-import { ALPHABET, WORD_DICTIONARY, VOCAB_BY_TOPIC } from '../constants';
+import { ALPHABET, WORD_DICTIONARY } from '../constants';
 import type { Category, AlphabetSign, DictionaryEntry, VocabTopic } from '../types';
 
 interface GameCard {
@@ -25,9 +26,9 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-const generateGameBoard = (category: Category, topic?: VocabTopic): GameCard[] => {
+const generateGameBoard = (category: Category, topic?: VocabTopic, words?: DictionaryEntry[]): GameCard[] => {
     if (category === 'vocabulary') {
-        const source = topic ? VOCAB_BY_TOPIC[topic.id] : WORD_DICTIONARY;
+        const source = words || WORD_DICTIONARY;
         const vocabItems = shuffleArray(source).slice(0, 8); // 8 pairs
         const textCards: GameCard[] = vocabItems.map((item: DictionaryEntry, i) => ({
             id: i * 2,
@@ -78,6 +79,7 @@ interface MatchingGameZoneProps {
     category: Category;
     topic?: VocabTopic;
     onGameComplete: (points: number) => void;
+    words?: DictionaryEntry[];
 }
 
 const MemoizedCardFace: React.FC<{ card: GameCard }> = React.memo(({ card }) => {
@@ -98,7 +100,7 @@ const MemoizedCardFace: React.FC<{ card: GameCard }> = React.memo(({ card }) => 
 });
 
 
-export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, topic, onGameComplete }) => {
+export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, topic, onGameComplete, words }) => {
   const [cards, setCards] = useState<GameCard[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
@@ -106,11 +108,11 @@ export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, to
   const pointsAwarded = 15;
 
   const resetGame = useCallback(() => {
-    setCards(generateGameBoard(category, topic));
+    setCards(generateGameBoard(category, topic, words));
     setFlippedCards([]);
     setMoves(0);
     setIsComplete(false);
-  }, [category, topic]);
+  }, [category, topic, words]);
 
   useEffect(() => {
     resetGame();

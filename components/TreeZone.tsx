@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from './Card';
 import { VOCAB_TREE } from '../constants';
@@ -10,6 +9,7 @@ interface TreeZoneProps {
     points: number;
     onSelectTopic: (topic: VocabTopic) => void;
     onUnlockTopic: (topic: VocabTopic) => void;
+    onBack: () => void;
 }
 
 const topicIcons: { [key in VocabTopic['iconId']]: React.FC<{className?: string}> } = {
@@ -72,10 +72,19 @@ const TopicCard: React.FC<{
 };
 
 
-export const TreeZone: React.FC<TreeZoneProps> = ({ unlockedTopics, points, onSelectTopic, onUnlockTopic }) => {
+export const TreeZone: React.FC<TreeZoneProps> = ({ unlockedTopics, points, onSelectTopic, onUnlockTopic, onBack }) => {
     return (
         <Card>
-            <h3 className="text-2xl font-bold mb-1 text-center text-slate-700 dark:text-slate-200">Vocabulary Tree</h3>
+            <div className="relative flex items-center justify-center mb-2">
+                <button 
+                    onClick={onBack} 
+                    className="absolute left-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-md p-1"
+                    aria-label="Back to Sort Selection"
+                >
+                    &larr; Back
+                </button>
+                <h3 className="text-2xl font-bold text-center text-slate-700 dark:text-slate-200">Vocabulary Topics</h3>
+            </div>
             <p className="text-center text-slate-500 dark:text-slate-400 mb-6">Unlock topics to learn new vocabulary.</p>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
