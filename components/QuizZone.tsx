@@ -48,7 +48,7 @@ const VocabChoiceButton: React.FC<{
         <button 
             onClick={onClick}
             disabled={disabled}
-            className={`w-full aspect-square bg-slate-200 dark:bg-slate-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2 overflow-hidden ${buttonClass}`}
+            className={`w-full aspect-square bg-stone-200 dark:bg-stone-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2 overflow-hidden ${buttonClass}`}
             aria-label={`Choice ${item.term}`}
         >
             <video
@@ -103,7 +103,7 @@ const PhraseChoiceButton: React.FC<{
         <button
             onClick={onClick}
             disabled={disabled}
-            className={`w-full aspect-video bg-slate-200 dark:bg-slate-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2 overflow-hidden ${buttonClass}`}
+            className={`w-full aspect-video bg-stone-200 dark:bg-stone-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2 overflow-hidden ${buttonClass}`}
             aria-label={`Choice phrase starting with ${phrase.signs[0].term}`}
         >
             <div className="relative w-full h-full" onClick={handleReplayClick}>
@@ -121,7 +121,7 @@ const PhraseChoiceButton: React.FC<{
                 )}
                 <div className="absolute bottom-1 left-1 right-1 flex justify-center items-center gap-1">
                     {phrase.signs.map((_, index) => (
-                        <div key={index} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${currentSignIndex === index ? 'bg-sky-500/80' : 'bg-slate-300/60 dark:bg-slate-900/60'}`}></div>
+                        <div key={index} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${currentSignIndex === index ? 'bg-indigo-500/80' : 'bg-stone-300/60 dark:bg-stone-900/60'}`}></div>
                     ))}
                 </div>
             </div>
@@ -197,23 +197,23 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
     return (
         <Card className="flex flex-col items-center justify-center h-full min-h-[400px]">
             <div role="status" aria-label="Loading question">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-sky-500"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 mt-4">Generating new question...</p>
+            <p className="text-stone-500 dark:text-stone-400 mt-4">Generating new question...</p>
         </Card>
     );
   }
 
   const getButtonClass = (choice: string) => {
-    if (!isAnswered) return 'bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-700 focus:ring-sky-300 dark:focus:ring-sky-800';
+    if (!isAnswered) return 'bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:ring-indigo-300 dark:focus:ring-indigo-800';
     if (choice.toUpperCase() === correctAnswer.toUpperCase()) return 'bg-green-500 dark:bg-green-600 cursor-default';
     if (feedback?.choice.toUpperCase() === choice.toUpperCase()) return 'bg-red-500 dark:bg-red-600 cursor-default';
-    return 'bg-slate-400 dark:bg-slate-600 cursor-default opacity-70';
+    return 'bg-stone-400 dark:bg-stone-600 cursor-default opacity-70';
   };
 
   const getMediaChoiceClass = (choiceValue: string) => {
-    const base = 'ring-4 ring-offset-2 dark:ring-offset-slate-800 rounded-lg transition-all duration-200';
-    if (!isAnswered) return `ring-transparent hover:ring-sky-400`;
+    const base = 'ring-4 ring-offset-2 dark:ring-offset-stone-800 rounded-lg transition-all duration-200';
+    if (!isAnswered) return `ring-transparent hover:ring-indigo-400`;
     if (choiceValue.toUpperCase() === correctAnswer.toUpperCase()) return `ring-green-500 ${base}`;
     if (feedback?.choice.toUpperCase() === choiceValue.toUpperCase()) return `ring-red-500 ${base}`;
     return 'ring-transparent opacity-60';
@@ -228,7 +228,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
 
   const renderQuestion = () => {
       if (mode === 'reversal') {
-          return <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-center text-slate-800 dark:text-slate-200 p-4">{correctAnswer}</div>;
+          return <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-center text-stone-800 dark:text-stone-200 p-4">{correctAnswer}</div>;
       }
       const questionMedia = questionVocab || currentPhraseSign;
       if (((category === 'vocabulary' || category === 'tree') || category === 'phrases') && questionMedia) {
@@ -266,7 +266,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
         return (
             <button
                 onClick={onNextQuestion}
-                className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 transition-colors text-lg animate-fade-in-up"
+                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-colors text-lg animate-fade-in-up"
             >
                 Next Question
             </button>
@@ -311,7 +311,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
                   key={sign.letter}
                   onClick={() => onSelectChoice(sign.letter)}
                   disabled={isAnswered}
-                  className={`w-full aspect-square bg-slate-200 dark:bg-slate-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2
+                  className={`w-full aspect-square bg-stone-200 dark:bg-stone-700 rounded-lg shadow-md transition-all duration-200 focus:outline-none p-2
                     ${getMediaChoiceClass(sign.letter)}`}
                   aria-label={`Choice ${sign.letter}`}
                 >
@@ -332,7 +332,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
                   onChange={(e) => onUserAnswerChange(e.target.value)}
                   disabled={isAnswered}
                   autoFocus
-                  className="flex-grow w-full text-center text-xl font-bold bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg py-4 px-4 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 focus:border-sky-500 dark:focus:border-sky-500 transition-colors disabled:opacity-70"
+                  className="flex-grow w-full text-center text-xl font-bold bg-stone-100 dark:bg-stone-800 border-2 border-stone-300 dark:border-stone-600 rounded-lg py-4 px-4 focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors disabled:opacity-70"
                   placeholder={`Type the ${category === 'phrases' ? 'phrase' : 'word'}`}
                   aria-label={`Your answer for the ${category === 'phrases' ? 'phrase' : 'word'}`}
                   maxLength={correctAnswer.length + 5}
@@ -341,9 +341,9 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
                 <button
                   type="submit"
                   disabled={isAnswered || !userAnswer.trim()}
-                  className={`text-white font-bold text-lg py-4 px-6 rounded-lg shadow-md transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 ${
-                    isAnswered ? (feedback?.correct ? 'bg-green-500' : 'bg-red-500') : 'bg-sky-500 hover:bg-sky-600'
-                  } disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed`}
+                  className={`text-white font-bold text-lg py-4 px-6 rounded-lg shadow-md transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 ${
+                    isAnswered ? (feedback?.correct ? 'bg-green-500' : 'bg-red-500') : 'bg-indigo-500 hover:bg-indigo-600'
+                  } disabled:bg-stone-400 dark:disabled:bg-stone-600 disabled:cursor-not-allowed`}
                 >
                   Check
                 </button>
@@ -371,6 +371,9 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
   };
   
   const getQuestionTitle = () => {
+    if (topicLabel === 'Wildcard Review') {
+        return topicLabel;
+    }
     const noun = category === 'alphabet' ? 'letter' : (category === 'vocabulary' || category === 'tree') ? 'word' : 'phrase';
     const topicPrefix = topicLabel ? `${topicLabel}: ` : '';
     if (mode === 'reversal') {
@@ -393,7 +396,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
   return (
     <Card className="flex flex-col items-center h-full">
       {category === 'alphabet' && <div className="flex justify-center items-center gap-2 mb-2 self-stretch">
-        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Level:</span>
+        <span className="text-sm font-semibold text-stone-500 dark:text-stone-400">Level:</span>
         {Array.from({ length: maxLevel }).map((_, index) => {
           const l = index + 1;
           return (
@@ -403,8 +406,8 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
               disabled={isAnswered || isGenerating || isTimeAttack}
               className={`px-3 py-1 text-sm font-bold rounded-full transition-colors
                 ${level === l 
-                  ? 'bg-sky-600 text-white' 
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'}
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-300 dark:hover:bg-stone-600'}
                 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {l}
@@ -413,7 +416,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
         })}
       </div>}
       
-      <h2 className="text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-300 mb-1 text-center">
+      <h2 className="text-xl md:text-2xl font-bold text-stone-700 dark:text-stone-300 mb-1 text-center">
         {getQuestionTitle()}
       </h2>
       
@@ -429,7 +432,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
         )}
       </div>
       
-      <div className="w-full max-w-xs aspect-square bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
+      <div className="w-full max-w-xs aspect-square bg-stone-200 dark:bg-stone-700 rounded-lg overflow-hidden shadow-inner flex items-center justify-center">
         {renderQuestion()}
       </div>
       
@@ -437,7 +440,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
           {(category === 'alphabet' || category === 'phrases') && mode === 'normal' && questionMediaList && questionMediaList.length > 1 && (
             <div className="flex gap-2">
               {questionMediaList.map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full transition-colors duration-300 ${displayIndex === i ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
+                <div key={i} className={`w-3 h-3 rounded-full transition-colors duration-300 ${displayIndex === i ? 'bg-indigo-500' : 'bg-stone-300 dark:bg-stone-600'}`}></div>
               ))}
             </div>
           )}
@@ -448,7 +451,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
             <button
                 onClick={onBack}
                 disabled={isGenerating}
-                className="text-sm text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center gap-1"
+                className="text-sm text-stone-500 dark:text-stone-400 hover:text-indigo-600 dark:hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center gap-1"
                 aria-label="Back to activities"
             >
                 Back to Activities

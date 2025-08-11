@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Card } from './Card';
 import { ALPHABET_DICTIONARY, WORD_DICTIONARY } from '../constants';
@@ -14,8 +15,8 @@ const DictionaryItem: React.FC<{ item: DictionaryEntry }> = ({ item }) => {
   }, []);
   
   return (
-    <div className="flex flex-col items-center p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 shadow-md transition-transform hover:scale-105 h-full">
-      <div className="w-full h-[9.5rem] flex items-center justify-center bg-slate-200 dark:bg-slate-600 rounded-md overflow-hidden">
+    <div className="flex flex-col items-center p-2 rounded-lg bg-stone-100 dark:bg-stone-700/50 shadow-md transition-transform hover:scale-105 h-full">
+      <div className="w-full h-[9.5rem] flex items-center justify-center bg-stone-200 dark:bg-stone-600 rounded-md overflow-hidden">
         {item.mediaType === 'video' ? (
           <video
             ref={videoRef}
@@ -36,7 +37,7 @@ const DictionaryItem: React.FC<{ item: DictionaryEntry }> = ({ item }) => {
           />
         )}
       </div>
-      <p className="mt-2 text-lg text-center font-bold text-slate-800 dark:text-slate-200 break-words flex-grow flex items-center">{item.term}</p>
+      <p className="mt-2 text-lg text-center font-bold text-stone-800 dark:text-stone-200 break-words flex-grow flex items-center">{item.term}</p>
     </div>
   );
 };
@@ -44,10 +45,10 @@ const DictionaryItem: React.FC<{ item: DictionaryEntry }> = ({ item }) => {
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({ label, isActive, onClick }) => (
     <button
       onClick={onClick}
-      className={`whitespace-nowrap py-3 px-6 border-b-2 font-semibold text-base transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-sky-500 rounded-t-lg
+      className={`whitespace-nowrap py-3 px-6 border-b-2 font-semibold text-base transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-950 focus:ring-indigo-500 rounded-t-lg
         ${isActive
-          ? 'border-sky-500 text-sky-600 dark:border-sky-400 dark:text-sky-400'
-          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500'
+          ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+          : 'border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-500'
         }
       `}
       aria-current={isActive ? 'page' : undefined}
@@ -66,17 +67,17 @@ const Pagination: React.FC<{ currentPage: number; totalPages: number; onPageChan
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 &larr; Previous
             </button>
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <span className="text-sm font-medium text-stone-600 dark:text-stone-400">
                 Page {currentPage} of {totalPages}
             </span>
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 Next &rarr;
             </button>
@@ -121,9 +122,9 @@ export const DictionaryZone: React.FC = () => {
 
   return (
     <Card className="h-full flex flex-col min-h-[400px]">
-      <h3 className="text-2xl font-bold mb-2 text-center text-slate-700 dark:text-slate-200">ASL Dictionary</h3>
+      <h3 className="text-2xl font-bold mb-2 text-center text-stone-700 dark:text-stone-200">ASL Dictionary</h3>
 
-      <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
+      <div className="border-b border-stone-200 dark:border-stone-700 mb-6">
         <nav className="flex justify-center space-x-4" aria-label="Dictionary categories">
             <TabButton label="Words" isActive={activeDict === 'words'} onClick={() => handleTabChange('words')} />
             <TabButton label="Alphabet" isActive={activeDict === 'alphabet'} onClick={() => handleTabChange('alphabet')} />
@@ -136,10 +137,10 @@ export const DictionaryZone: React.FC = () => {
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder={`Search for a ${activeDict === 'alphabet' ? 'letter' : 'word'}...`}
-          className="w-full py-3 pl-10 pr-4 bg-slate-100 dark:bg-slate-900/50 rounded-lg border-2 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+          className="w-full py-3 pl-10 pr-4 bg-stone-100 dark:bg-stone-900/50 rounded-lg border-2 border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
           aria-label="Search dictionary"
         />
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
@@ -159,8 +160,8 @@ export const DictionaryZone: React.FC = () => {
         </div>
       ) : (
         <div className="text-center py-10 flex-grow flex flex-col items-center justify-center">
-          <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">No signs found</p>
-          <p className="text-slate-500 dark:text-slate-400">Could not find a match for "{searchTerm}".</p>
+          <p className="text-lg font-semibold text-stone-600 dark:text-stone-300">No signs found</p>
+          <p className="text-stone-500 dark:text-stone-400">Could not find a match for "{searchTerm}".</p>
         </div>
       )}
     </Card>

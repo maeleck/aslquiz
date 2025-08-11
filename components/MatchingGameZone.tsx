@@ -1,7 +1,6 @@
 
 
 
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from './Card';
 import { ALPHABET, WORD_DICTIONARY } from '../constants';
@@ -96,7 +95,7 @@ const MemoizedCardFace: React.FC<{ card: GameCard }> = React.memo(({ card }) => 
         }
         return <img src={card.content} alt={`ASL sign for ${card.pairId}`} className="w-full h-full object-contain" />;
     }
-    return <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 dark:text-slate-200 text-center break-all">{card.content}</span>;
+    return <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-800 dark:text-stone-200 text-center break-all">{card.content}</span>;
 });
 
 
@@ -167,15 +166,15 @@ export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, to
   return (
     <Card>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200">{topic?.label || ''} Matching Game</h3>
-        <div className="text-lg font-semibold text-slate-500 dark:text-slate-400">Moves: <span className="text-sky-600 dark:text-sky-400 font-bold">{moves}</span></div>
+        <h3 className="text-2xl font-bold text-stone-700 dark:text-stone-200">{topic?.label || ''} Matching Game</h3>
+        <div className="text-lg font-semibold text-stone-500 dark:text-stone-400">Moves: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{moves}</span></div>
       </div>
       
       {isComplete ? (
         <div className="text-center py-16">
             <h4 className="text-3xl font-bold text-green-600 dark:text-green-500">Congratulations!</h4>
-            <p className="mt-2 text-lg text-slate-600 dark:text-slate-300">You completed the game in {moves} moves and earned {pointsAwarded} points!</p>
-            <button onClick={resetGame} className="mt-6 bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg text-lg">Play Again</button>
+            <p className="mt-2 text-lg text-stone-600 dark:text-stone-300">You completed the game in {moves} moves and earned {pointsAwarded} points!</p>
+            <button onClick={resetGame} className="mt-6 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg text-lg">Play Again</button>
         </div>
       ) : (
         <div className={`grid ${category === 'vocabulary' ? 'grid-cols-4' : 'grid-cols-4'} gap-2 sm:gap-4 aspect-square`}>
@@ -189,11 +188,11 @@ export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, to
             >
                 <div className={`relative w-full h-full transition-transform duration-500 preserve-3d ${card.isFlipped ? 'rotate-y-180' : ''}`}>
                 {/* Back of card */}
-                <div className="absolute w-full h-full backface-hidden bg-sky-500 hover:bg-sky-600 rounded-lg flex items-center justify-center text-4xl font-bold text-white shadow-lg">
+                <div className="absolute w-full h-full backface-hidden bg-indigo-500 hover:bg-indigo-600 rounded-lg flex items-center justify-center text-4xl font-bold text-white shadow-lg">
                     ?
                 </div>
                 {/* Front of card */}
-                <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center p-1 sm:p-2 shadow-lg overflow-hidden">
+                <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-stone-100 dark:bg-stone-700 rounded-lg flex items-center justify-center p-1 sm:p-2 shadow-lg overflow-hidden">
                     <MemoizedCardFace card={card} />
                 </div>
                 </div>
@@ -204,12 +203,3 @@ export const MatchingGameZone: React.FC<MatchingGameZoneProps> = ({ category, to
     </Card>
   );
 };
-
-const style = document.createElement('style');
-style.innerHTML = `
-  .perspective-1000 { perspective: 1000px; }
-  .preserve-3d { transform-style: preserve-3d; }
-  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .rotate-y-180 { transform: rotateY(180deg); }
-`;
-document.head.appendChild(style);

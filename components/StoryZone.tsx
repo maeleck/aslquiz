@@ -6,10 +6,10 @@ import type { Story, StoryStep, Phrase } from '../types';
 const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({ label, isActive, onClick }) => (
     <button
       onClick={onClick}
-      className={`whitespace-nowrap py-3 px-6 border-b-2 font-semibold text-base transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-sky-500 rounded-t-lg
+      className={`whitespace-nowrap py-3 px-6 border-b-2 font-semibold text-base transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-950 focus:ring-indigo-500 rounded-t-lg
         ${isActive
           ? 'border-rose-500 text-rose-600 dark:border-rose-400 dark:text-rose-400'
-          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500'
+          : 'border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-500'
         }
       `}
       aria-current={isActive ? 'page' : undefined}
@@ -53,7 +53,7 @@ const PhrasePlayer: React.FC<{ phrase: Phrase }> = ({ phrase }) => {
     const currentSign = phrase.signs[displayIndex];
 
     return (
-        <div className="w-full max-w-xs aspect-square bg-slate-200 dark:bg-slate-700 rounded-lg overflow-hidden shadow-inner flex items-center justify-center" onClick={handleRestartPlayback}>
+        <div className="w-full max-w-xs aspect-square bg-stone-200 dark:bg-stone-700 rounded-lg overflow-hidden shadow-inner flex items-center justify-center" onClick={handleRestartPlayback}>
             {currentSign && (
                 <video
                     ref={videoRef}
@@ -68,7 +68,7 @@ const PhrasePlayer: React.FC<{ phrase: Phrase }> = ({ phrase }) => {
             )}
              <div className="absolute bottom-3 left-3 right-3 flex justify-center items-center gap-2">
                 {phrase.signs.map((_, index) => (
-                    <div key={index} className={`h-2 w-2 rounded-full transition-colors duration-300 ${displayIndex >= index ? 'bg-rose-500/80' : 'bg-slate-300/60 dark:bg-slate-900/60'}`}></div>
+                    <div key={index} className={`h-2 w-2 rounded-full transition-colors duration-300 ${displayIndex >= index ? 'bg-rose-500/80' : 'bg-stone-300/60 dark:bg-stone-900/60'}`}></div>
                 ))}
             </div>
         </div>
@@ -120,17 +120,17 @@ export const StoryZone: React.FC<StoryZoneProps> = ({ onCorrectAnswer, onIncorre
     };
     
     const getButtonClass = (choice: string) => {
-        if (!isAnswered) return 'bg-sky-500 hover:bg-sky-600 dark:bg-sky-600 dark:hover:bg-sky-700 focus:ring-sky-300 dark:focus:ring-sky-800';
+        if (!isAnswered) return 'bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:ring-indigo-300 dark:focus:ring-indigo-800';
         if (choice === currentStep.correctChoice) return 'bg-green-500 dark:bg-green-600 cursor-default';
         if (feedback?.choice === choice) return 'bg-red-500 dark:bg-red-600 cursor-default';
-        return 'bg-slate-400 dark:bg-slate-600 cursor-default opacity-70';
+        return 'bg-stone-400 dark:bg-stone-600 cursor-default opacity-70';
     };
 
 
     return (
         <Card className="h-full flex flex-col">
-            <h3 className="text-2xl font-bold mb-2 text-center text-slate-700 dark:text-slate-200">Story Mode</h3>
-             <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
+            <h3 className="text-2xl font-bold mb-2 text-center text-stone-700 dark:text-stone-200">Story Mode</h3>
+             <div className="border-b border-stone-200 dark:border-stone-700 mb-6">
                 <nav className="flex justify-center space-x-4" aria-label="Stories">
                    {STORIES.map(story => (
                         <TabButton 
@@ -144,20 +144,20 @@ export const StoryZone: React.FC<StoryZoneProps> = ({ onCorrectAnswer, onIncorre
             </div>
             
             <div className="flex flex-col items-center flex-grow">
-                 <h4 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-4 text-center">
+                 <h4 className="text-xl font-bold text-stone-700 dark:text-stone-300 mb-4 text-center">
                     {currentStep.prompt}
                 </h4>
                 <PhrasePlayer phrase={currentStep.phrase} />
 
                 <div className="w-full max-w-md mt-6">
                     {isAnswered && (
-                        <div className="text-center p-4 mb-4 rounded-lg bg-slate-100 dark:bg-slate-900/50 animate-fade-in-up">
+                        <div className="text-center p-4 mb-4 rounded-lg bg-stone-100 dark:bg-stone-900/50 animate-fade-in-up">
                             {feedback?.correct ? (
                                 <p className="font-bold text-green-500">Correct! +2 Points</p>
                             ) : (
                                 <p className="font-bold text-red-500">Not quite. The correct answer was "{currentStep.correctChoice}"</p>
                             )}
-                             <p className="mt-2 text-lg text-slate-800 dark:text-slate-200">
+                             <p className="mt-2 text-lg text-stone-800 dark:text-stone-200">
                                 The signs meant: <strong className="text-rose-600 dark:text-rose-400">"{currentStep.phrase.text}"</strong>
                             </p>
                         </div>
@@ -191,7 +191,7 @@ export const StoryZone: React.FC<StoryZoneProps> = ({ onCorrectAnswer, onIncorre
                 {activeStory.steps.map((step, index) => (
                     <div
                         key={step.id}
-                        className={`w-4 h-4 rounded-full transition-colors duration-300 ${index <= currentStepIndex ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                        className={`w-4 h-4 rounded-full transition-colors duration-300 ${index <= currentStepIndex ? 'bg-rose-500' : 'bg-stone-300 dark:bg-stone-600'}`}
                         title={`Step ${index + 1}`}
                     />
                 ))}

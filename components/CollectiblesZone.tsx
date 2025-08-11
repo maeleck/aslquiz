@@ -21,12 +21,12 @@ export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, coll
 
   return (
     <Card className="h-full flex flex-col">
-      <h3 className="text-2xl font-bold mb-2 text-center text-slate-700 dark:text-slate-200">Collectible Facts</h3>
-      <p className="text-center text-slate-500 dark:text-slate-400 mb-4">
+      <h3 className="text-2xl font-bold mb-2 text-center text-stone-700 dark:text-stone-200">Collectible Facts</h3>
+      <p className="text-center text-stone-500 dark:text-stone-400 mb-4">
         Collected: {collectedFacts.length} / {ASL_CULTURE_QUOTES.length}
       </p>
 
-      <div className="flex-grow bg-slate-100 dark:bg-slate-700/50 p-3 rounded-lg mb-4">
+      <div className="flex-grow bg-stone-100 dark:bg-stone-700/50 p-3 rounded-lg mb-4">
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
           {ASL_CULTURE_QUOTES.map((fact, index) => {
             const isCollected = collectedFacts.includes(fact);
@@ -35,11 +35,11 @@ export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, coll
                 key={index}
                 disabled={!isCollected}
                 onClick={() => isCollected && onViewFact(fact)}
-                className={`aspect-square rounded flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-sky-500
+                className={`aspect-square rounded flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-950 focus:ring-indigo-500
                   ${
                     isCollected 
                     ? 'bg-green-500 dark:bg-green-600 cursor-pointer hover:bg-green-400' 
-                    : 'bg-slate-300 dark:bg-slate-600 cursor-not-allowed'
+                    : 'bg-stone-300 dark:bg-stone-600 cursor-not-allowed'
                   }`
                 }
                 title={isCollected ? fact : 'Uncollected'}
@@ -48,7 +48,7 @@ export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, coll
                 {isCollected ? (
                   <CheckCircleIcon className="w-6 h-6 text-white" />
                 ) : (
-                  <LockClosedIcon className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                  <LockClosedIcon className="w-5 h-5 text-stone-500 dark:text-stone-400" />
                 )}
               </button>
             );
@@ -66,10 +66,10 @@ export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, coll
           onClick={onBuyFact} 
           disabled={!canAfford}
           className="w-full text-center font-bold py-4 px-4 text-lg transition-all duration-300 rounded-lg shadow-lg
-                     bg-sky-500 hover:bg-sky-600 text-white
-                     disabled:bg-slate-400 dark:disabled:bg-slate-600 dark:disabled:text-slate-300
+                     bg-indigo-500 hover:bg-indigo-600 text-white
+                     disabled:bg-stone-400 dark:disabled:bg-stone-600 dark:disabled:text-stone-300
                      disabled:cursor-not-allowed disabled:shadow-none
-                     focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800"
+                     focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800"
           aria-label={`Buy a random fact. Cost: ${formatNumber(cost)} points.`}
         >
           Buy a Fact

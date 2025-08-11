@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Card } from './Card';
-import { QuestionMarkCircleIcon, BookOpenIcon, CogIcon, SparklesIcon, SitemapIcon, GraduationCapIcon } from './Icons';
+import { QuestionMarkCircleIcon, BookOpenIcon, CogIcon, SparklesIcon, SitemapIcon, GraduationCapIcon, GlobeAltIcon } from './Icons';
 import { Category } from '../types';
 
 interface HelpModalProps {
   onClose: () => void;
 }
 
-const helpTopics: { id: Category, title: string; description: string; icon: React.FC<{className?: string}> }[] = [
+const helpTopics: { id: string, title: string; description: string; icon: React.FC<{className?: string}> }[] = [
     {
         id: 'tree',
         title: 'Tree',
@@ -22,7 +22,7 @@ const helpTopics: { id: Category, title: string; description: string; icon: Reac
     },
     {
         id: 'vocabulary',
-        title: 'Vocabulary (Review)',
+        title: 'Wildcard (Review)',
         description: 'Review all the words you have unlocked so far. A great way to practice everything you\'ve learned.',
         icon: BookOpenIcon
     },
@@ -33,17 +33,17 @@ const helpTopics: { id: Category, title: string; description: string; icon: Reac
         icon: SparklesIcon
     },
     {
+        id: 'adventure',
+        title: 'Adventure',
+        description: 'Explore a spinning globe and access your collectible facts about ASL and Deaf culture.',
+        icon: GlobeAltIcon
+    },
+    {
         id: 'dictionary',
         title: 'Dictionary',
         description: 'A complete reference of all signs available in the app. Look up specific words or letters whenever you need.',
         icon: BookOpenIcon
     },
-    {
-        id: 'collectibles',
-        title: 'Collectibles',
-        description: 'Use the points you earn from quizzes to unlock interesting facts about ASL and Deaf culture.',
-        icon: SparklesIcon
-    }
 ]
 
 export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
@@ -68,19 +68,19 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
       <div onClick={e => e.stopPropagation()} className="w-full max-w-lg">
         <Card className="animate-fade-in-up max-h-[90vh] overflow-y-auto">
             <div className="flex items-center mb-6">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-sky-500 dark:text-sky-400 mr-3" />
-                <h2 id="help-modal-title" className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                <QuestionMarkCircleIcon className="w-8 h-8 text-indigo-500 dark:text-indigo-400 mr-3" />
+                <h2 id="help-modal-title" className="text-2xl font-bold text-stone-800 dark:text-stone-200">
                     Help
                 </h2>
             </div>
             
             <div className="space-y-4">
                 {helpTopics.map(topic => (
-                    <div key={topic.id} className="flex items-start p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                        <topic.icon className="w-7 h-7 text-sky-500 dark:text-sky-400 mr-4 mt-1 flex-shrink-0" />
+                    <div key={topic.id} className="flex items-start p-4 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
+                        <topic.icon className="w-7 h-7 text-indigo-500 dark:text-indigo-400 mr-4 mt-1 flex-shrink-0" />
                         <div>
-                            <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">{topic.title}</h3>
-                            <p className="text-slate-600 dark:text-slate-400">{topic.description}</p>
+                            <h3 className="font-bold text-lg text-stone-800 dark:text-stone-200">{topic.title}</h3>
+                            <p className="text-stone-600 dark:text-stone-400">{topic.description}</p>
                         </div>
                     </div>
                 ))}
@@ -88,7 +88,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
             
             <button
                 onClick={onClose}
-                className="mt-6 w-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 transition-colors"
+                className="mt-6 w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-700 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-colors"
                 aria-label="Close modal"
             >
                 Close

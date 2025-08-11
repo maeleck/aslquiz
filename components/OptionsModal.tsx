@@ -3,6 +3,7 @@ import { Card } from './Card';
 import { CogIcon } from './Icons';
 import { ThemeToggle } from './ThemeToggle';
 import { showRewardedVideo } from '../services/ads';
+import type { Language } from '../types';
 
 interface OptionsModalProps {
   onClose: () => void;
@@ -10,9 +11,19 @@ interface OptionsModalProps {
   theme: 'light' | 'dark';
   onThemeToggle: () => void;
   onAdReward: (points: number) => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
 }
 
-export const OptionsModal: React.FC<OptionsModalProps> = ({ onClose, onReset, theme, onThemeToggle, onAdReward }) => {
+const LANGUAGES: { id: Language, label: string }[] = [
+    { id: 'ASL', label: 'ASL' },
+    { id: 'JSL', label: 'JSL' },
+    { id: 'LSM', label: 'LSM' },
+    { id: 'LSF', label: 'LSF' },
+    { id: 'VSL', label: 'VSL' },
+];
+
+export const OptionsModal: React.FC<OptionsModalProps> = ({ onClose, onReset, theme, onThemeToggle, onAdReward, language, onLanguageChange }) => {
   const [isAdLoading, setIsAdLoading] = useState(false);
 
   useEffect(() => {
@@ -51,25 +62,51 @@ export const OptionsModal: React.FC<OptionsModalProps> = ({ onClose, onReset, th
       <div onClick={e => e.stopPropagation()} className="w-full max-w-md">
         <Card className="animate-fade-in-up">
             <div className="flex items-center mb-6">
-                <CogIcon className="w-8 h-8 text-sky-500 dark:text-sky-400 mr-3" />
-                <h2 id="options-modal-title" className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                <CogIcon className="w-8 h-8 text-indigo-500 dark:text-indigo-400 mr-3" />
+                <h2 id="options-modal-title" className="text-2xl font-bold text-stone-800 dark:text-stone-200">
                     Options
                 </h2>
             </div>
             
             <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Appearance</span>
+                <div className="p-4 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
+                    <span className="font-semibold text-stone-700 dark:text-stone-300 block mb-2">Language</span>
+                    <div className="grid grid-cols-3 gap-2">
+                        {LANGUAGES.map(lang => {
+                            const isSelected = language === lang.id;
+                            const isDisabled = lang.id !== 'ASL';
+                            return (
+                                <button
+                                    key={lang.id}
+                                    onClick={() => onLanguageChange(lang.id)}
+                                    disabled={isDisabled}
+                                    className={`px-3 py-2 text-sm font-bold rounded-md transition-colors relative
+                                        ${isSelected ? 'bg-indigo-600 text-white' : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-300 dark:hover:bg-stone-600'}
+                                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+                                    `}
+                                    title={isDisabled ? `${lang.label} (Coming Soon)` : `Select ${lang.label}`}
+                                >
+                                    {lang.label}
+                                    {isDisabled && <span className="absolute -top-1.5 -right-1.5 text-[10px] bg-amber-500 text-white font-semibold px-1.5 py-0.5 rounded-full">Soon</span>}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
+                    <span className="font-semibold text-stone-700 dark:text-stone-300">Appearance</span>
                     <ThemeToggle theme={theme} onToggle={onThemeToggle} />
                 </div>
-                <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+
+                <div className="flex items-center justify-between p-4 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
                     <div className="flex flex-col">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Watch Ad for Reward</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">+100 Points</span>
+                        <span className="font-semibold text-stone-700 dark:text-stone-300">Watch Ad for Reward</span>
+                        <span className="text-xs text-stone-500 dark:text-stone-400">+100 Points</span>
                     </div>
                     <button 
                       onClick={handleWatchAd}
-                      className="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white transition-colors disabled:bg-slate-400 disabled:cursor-wait"
+                      className="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 hover:bg-green-600 text-white transition-colors disabled:bg-stone-400 disabled:cursor-wait"
                       disabled={isAdLoading}
                     >
                         {isAdLoading ? 'Loading...' : 'Watch Ad'}
@@ -91,7 +128,7 @@ export const OptionsModal: React.FC<OptionsModalProps> = ({ onClose, onReset, th
             
             <button
                 onClick={onClose}
-                className="mt-6 w-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 transition-colors"
+                className="mt-6 w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-700 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-colors"
                 aria-label="Close modal"
             >
                 Close

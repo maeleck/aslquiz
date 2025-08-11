@@ -1,9 +1,10 @@
 
 
+
 import React from 'react';
 
 export const TrophyIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-600 dark:text-sky-400" viewBox="0 0 20 20" fill="currentColor">
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
     <path d="M10 2a2 2 0 00-2 2v1a2 2 0 002 2h0a2 2 0 002-2V4a2 2 0 00-2-2zM4 6A2 2 0 002 8v1h16V8a2 2 0 00-2-2h-3v1a2 2 0 11-4 0V6H4z" />
     <path fillRule="evenodd" d="M3 11v6a2 2 0 002 2h10a2 2 0 002-2v-6H3zm2.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clipRule="evenodd" />
   </svg>
@@ -101,8 +102,21 @@ export const SwitchHorizontalIcon: React.FC<{className?: string}> = ({ className
     </svg>
 );
 
+export const ArrowLeftIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+    </svg>
+);
+
 export const RefreshIcon: React.FC<{className?: string}> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.18-3.185m-3.18-3.182l-3.182-3.182a8.25 8.25 0 00-11.664 0l-3.18 3.185" />
+    </svg>
+);
+
+export const GlobeAltIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.25 9.75h17.5M9 3.25c.468 5.462 2.502 9.42 4.5 11.516M15 20.75c-.468-5.462-2.502-9.42-4.5-11.516" />
     </svg>
 );

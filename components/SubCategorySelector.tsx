@@ -1,7 +1,9 @@
+
+
 import React from 'react';
 import { Card } from './Card';
 import type { Category, SubCategory, VocabTopic } from '../types';
-import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon, RefreshIcon } from './Icons';
+import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon, RefreshIcon, ArrowLeftIcon } from './Icons';
 import { STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from '../constants';
 
 interface SubCategorySelectorProps {
@@ -22,11 +24,11 @@ const allSubCategories: { id: SubCategory; label: string; description: string; i
 ];
 
 const categoryColors: { [key in Category]: { text: string; bg: string; border: string; hoverBg: string } } = {
-    alphabet:     { text: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-900/50', border: 'border-sky-500', hoverBg: 'hover:bg-sky-100 dark:hover:bg-sky-800/60' },
+    alphabet:     { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/50', border: 'border-indigo-500', hoverBg: 'hover:bg-indigo-100 dark:hover:bg-indigo-800/60' },
     vocabulary:   { text: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/50', border: 'border-green-500', hoverBg: 'hover:bg-green-100 dark:hover:bg-green-800/60' },
     phrases:      { text: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/50', border: 'border-purple-500', hoverBg: 'hover:bg-purple-100 dark:hover:bg-purple-800/60' },
     tree:         { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/50', border: 'border-indigo-500', hoverBg: 'hover:bg-indigo-100 dark:hover:bg-indigo-800/60' },
-    collectibles: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/50', border: 'border-amber-500', hoverBg: 'hover:bg-amber-100 dark:hover:bg-amber-800/60' },
+    adventure:    { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/50', border: 'border-amber-500', hoverBg: 'hover:bg-amber-100 dark:hover:bg-amber-800/60' },
     dictionary:   { text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/50', border: 'border-blue-500', hoverBg: 'hover:bg-blue-100 dark:hover:bg-blue-800/60' },
     story:        { text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-900/50', border: 'border-rose-500', hoverBg: 'hover:bg-rose-100 dark:hover:bg-rose-800/60' },
 };
@@ -53,7 +55,8 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
             wordsForLevel = levelData?.words || [];
         }
     } else {
-        title = `${topic ? topic.label : category.charAt(0).toUpperCase() + category.slice(1)} Activities`;
+        const categoryName = category === 'vocabulary' ? 'Wildcard' : category.charAt(0).toUpperCase() + category.slice(1);
+        title = `${topic ? topic.label : categoryName} Activities`;
     }
 
     const isEnabled = (subId: SubCategory) => {
@@ -69,27 +72,34 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
         return false;
     }
 
+    const handleShuffleClick = () => {
+        if (onShuffleWords && window.confirm('Are you sure you want to get 10 new words?')) {
+            onShuffleWords();
+        }
+    };
+
   return (
     <Card className="h-full flex flex-col">
         <div className="relative flex items-center justify-center mb-4">
             {onBack && (
-                <button 
-                    onClick={onBack} 
-                    className="absolute left-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-md p-1"
-                    aria-label="Back to Level Selection"
+                <button
+                    onClick={onBack}
+                    className="absolute left-0 p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-800 focus:ring-indigo-500 transition-colors"
+                    aria-label="Back to level selection"
+                    title="Back to level selection"
                 >
-                    &larr; Back to Levels
+                    <ArrowLeftIcon className="h-5 w-5" />
                 </button>
             )}
-            <h2 className={`text-xl md:text-2xl font-bold ${colors.text}`}>{title}</h2>
+            <h2 className={`text-xl md:text-2xl font-bold text-center px-12 ${colors.text}`}>{title}</h2>
             {onShuffleWords && (
-                <button
-                    onClick={onShuffleWords}
-                    className="absolute right-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-700 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 flex items-center gap-1.5 transition-colors"
+                 <button
+                    onClick={handleShuffleClick}
+                    className="absolute right-0 p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-800 focus:ring-indigo-500 transition-colors"
                     aria-label="Get new words"
+                    title="Get new words"
                 >
                     <RefreshIcon className="h-5 w-5" />
-                    New Words
                 </button>
             )}
         </div>
@@ -106,15 +116,15 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
                         onClick={() => onSelect(sub.id)}
                         disabled={!enabled}
                         className={`p-6 rounded-lg border-2 text-left transition-all duration-200 flex flex-col
-                            ${enabled ? `${colors.border} ${colors.hoverBg} cursor-pointer` : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed opacity-60'}
-                            focus:outline-none focus:ring-4 ${enabled ? 'focus:ring-sky-300 dark:focus:ring-sky-800' : 'focus:ring-slate-300 dark:focus:ring-slate-600'}
+                            ${enabled ? `${colors.border} ${colors.hoverBg} cursor-pointer` : 'border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 cursor-not-allowed opacity-60'}
+                            focus:outline-none focus:ring-4 ${enabled ? 'focus:ring-indigo-300 dark:focus:ring-indigo-800' : 'focus:ring-stone-300 dark:focus:ring-stone-600'}
                         `}
                     >
                         <div className="flex items-center mb-2">
-                           <sub.icon className={`h-6 w-6 mr-3 ${enabled ? colors.text : 'text-slate-400'}`} />
-                           <h3 className={`text-xl font-bold ${enabled ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>{sub.label}</h3>
+                           <sub.icon className={`h-6 w-6 mr-3 ${enabled ? colors.text : 'text-stone-400'}`} />
+                           <h3 className={`text-xl font-bold ${enabled ? 'text-stone-800 dark:text-stone-100' : 'text-stone-500 dark:text-stone-400'}`}>{sub.label}</h3>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-400 flex-grow">{description}</p>
+                        <p className="text-stone-600 dark:text-stone-400 flex-grow">{description}</p>
                         {!enabled && (
                              <span className="mt-4 text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full self-start">Not Enough Words</span>
                         )}

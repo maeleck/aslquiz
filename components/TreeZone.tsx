@@ -29,7 +29,7 @@ const TopicCard: React.FC<{
     const { label, cost, iconId } = topic;
     const IconComponent = topicIcons[iconId];
 
-    let statusStyles = 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60';
+    let statusStyles = 'bg-stone-100 dark:bg-stone-800 border-stone-300 dark:border-stone-700 text-stone-500 dark:text-stone-400 cursor-not-allowed opacity-60';
     let actionHandler = () => {};
     let title = 'Locked';
 
@@ -38,7 +38,7 @@ const TopicCard: React.FC<{
         actionHandler = onSelect;
         title = `Open ${label}`;
     } else if (canUnlock) {
-        statusStyles = 'bg-sky-50 dark:bg-sky-900/50 border-sky-500 hover:bg-sky-100 dark:hover:bg-sky-800/60 cursor-pointer';
+        statusStyles = 'bg-indigo-50 dark:bg-indigo-900/50 border-indigo-500 hover:bg-indigo-100 dark:hover:bg-indigo-800/60 cursor-pointer';
         actionHandler = onUnlock;
         title = `Unlock ${label} for ${cost} points`;
     }
@@ -48,19 +48,19 @@ const TopicCard: React.FC<{
             onClick={actionHandler}
             disabled={!isUnlocked && !canUnlock}
             className={`p-4 rounded-xl border-2 text-center transition-all duration-200 flex flex-col items-center justify-between h-full min-h-[160px]
-                        focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-sky-400
+                        focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-stone-800 focus:ring-indigo-400
                         ${statusStyles}`}
             aria-label={title}
         >
             <div className="flex-grow flex flex-col items-center justify-center">
                 <IconComponent className="h-10 w-10 mb-2" />
-                <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100">{label}</h4>
+                <h4 className="text-lg font-bold text-stone-800 dark:text-stone-100">{label}</h4>
             </div>
             <div className="mt-2 text-xs font-semibold">
                 {isUnlocked ? (
                     <span className="px-2 py-1 rounded-full bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-300">UNLOCKED</span>
                 ) : (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700">
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-stone-200 dark:bg-stone-700">
                         <TrophyIcon />
                         <span>{cost}</span>
                         <LockClosedIcon className="w-3 h-3 ml-1" />
@@ -78,14 +78,14 @@ export const TreeZone: React.FC<TreeZoneProps> = ({ unlockedTopics, points, onSe
             <div className="relative flex items-center justify-center mb-2">
                 <button 
                     onClick={onBack} 
-                    className="absolute left-0 text-sm font-semibold text-sky-600 dark:text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-500 rounded-md p-1"
+                    className="absolute left-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-md p-1"
                     aria-label="Back to Sort Selection"
                 >
                     &larr; Back
                 </button>
-                <h3 className="text-2xl font-bold text-center text-slate-700 dark:text-slate-200">Vocabulary Topics</h3>
+                <h3 className="text-2xl font-bold text-center text-stone-700 dark:text-stone-200">Vocabulary Topics</h3>
             </div>
-            <p className="text-center text-slate-500 dark:text-slate-400 mb-6">Unlock topics to learn new vocabulary.</p>
+            <p className="text-center text-stone-500 dark:text-stone-400 mb-6">Unlock topics to learn new vocabulary.</p>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {VOCAB_TREE.map(topic => {

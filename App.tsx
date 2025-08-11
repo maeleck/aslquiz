@@ -1,6 +1,8 @@
+
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
-import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode } from './types';
+import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode, Language } from './types';
 import { StatsDisplay } from './components/StatsDisplay';
 import { QuizZone } from './components/QuizZone';
 import { CollectiblesZone } from './components/CollectiblesZone';
@@ -17,6 +19,7 @@ import { StoryZone } from './components/StoryZone';
 import { LevelSelectorZone } from './components/LevelSelectorZone';
 import { HelpModal } from './components/HelpModal';
 import { TreeHomeZone } from './components/TreeHomeZone';
+import { AdventureZone } from './components/AdventureZone';
 import { CommonalityLevelSelectorZone } from './components/CommonalityLevelSelectorZone';
 import { showRewardedVideo } from './services/ads';
 
@@ -85,6 +88,7 @@ export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const [currentLevel, setCurrentLevel] = useState<number>(1);
   const [userAnswer, setUserAnswer] = useState<string>('');
+  const [language, setLanguage] = useState<Language>('ASL');
 
   const [timeAttackState, setTimeAttackState] = useState<TimeAttackState>(null);
 
@@ -104,7 +108,7 @@ export default function App() {
         return 'dark';
       }
     }
-    return 'light';
+    return 'dark';
   });
 
   useEffect(() => {
@@ -470,7 +474,7 @@ export default function App() {
   };
   
   const handleSelectCategory = (category: Category) => {
-      if (category === activeCategory && !['collectibles', 'dictionary', 'story'].includes(category)) {
+      if (category === activeCategory && !['adventure', 'dictionary', 'story'].includes(category)) {
           // Allow re-clicking tree to go back to its home
           if (category === 'tree') {
             setTreeSortMode(null);
@@ -583,7 +587,7 @@ export default function App() {
   const isTimeAttack = activeSubCategory === 'time-attack' || activeSubCategory === 'reversal-time-attack';
   
   const getTopicLabel = () => {
-    if (activeCategory === 'vocabulary') return "Vocabulary Review";
+    if (activeCategory === 'vocabulary') return "Wildcard Review";
     if (activeCategory !== 'tree') return undefined;
     if (treeSortMode === 'topic' && activeTopic) {
         return `${activeTopic.label}${activeVocabLevel ? ` - Level ${activeVocabLevel}` : ''}`;
@@ -632,21 +636,21 @@ export default function App() {
   ]);
 
   const TimeAttackEndScreen: React.FC = () => (
-      <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg shadow-xl">
-        <h2 className="text-3xl font-bold text-sky-600 dark:text-sky-400">Time's Up!</h2>
-        <p className="text-xl mt-4 text-slate-700 dark:text-slate-300">You scored</p>
+      <div className="text-center p-8 bg-white dark:bg-stone-800 rounded-lg shadow-xl">
+        <h2 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">Time's Up!</h2>
+        <p className="text-xl mt-4 text-stone-700 dark:text-stone-300">You scored</p>
         <p className="text-6xl font-bold my-4 text-amber-500">{timeAttackState?.score}</p>
-        <p className="text-lg text-slate-500 dark:text-slate-400">points in 30 seconds.</p>
-        <button onClick={handlePlayAgainTimeAttack} className="mt-8 w-full max-w-xs bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 transition-colors text-lg">
+        <p className="text-lg text-stone-500 dark:text-stone-400">points in 30 seconds.</p>
+        <button onClick={handlePlayAgainTimeAttack} className="mt-8 w-full max-w-xs bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-colors text-lg">
           Play Again
         </button>
       </div>
   );
 
   const TimeAttackStartScreen: React.FC = () => (
-      <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-lg shadow-xl">
-        <h2 className="text-3xl font-bold text-sky-600 dark:text-sky-400">Time Attack!</h2>
-        <p className="text-xl mt-4 text-slate-700 dark:text-slate-300">Answer as many questions as you can in 30 seconds.</p>
+      <div className="text-center p-8 bg-white dark:bg-stone-800 rounded-lg shadow-xl">
+        <h2 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">Time Attack!</h2>
+        <p className="text-xl mt-4 text-stone-700 dark:text-stone-300">Answer as many questions as you can in 30 seconds.</p>
           <button onClick={handleStartTimeAttack} className="mt-8 w-full max-w-xs bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800 transition-colors text-lg">
           Start
         </button>
@@ -678,8 +682,8 @@ export default function App() {
             case 'reversal-time-attack':
                 return (
                     <div>
-                        <div className="mb-4 p-4 bg-white dark:bg-slate-800 rounded-lg shadow-md flex justify-between items-center font-bold">
-                            <div className="text-lg text-slate-700 dark:text-slate-200">Score: <span className="text-amber-500">{timeAttackState?.score}</span></div>
+                        <div className="mb-4 p-4 bg-white dark:bg-stone-800 rounded-lg shadow-md flex justify-between items-center font-bold">
+                            <div className="text-lg text-stone-700 dark:text-stone-200">Score: <span className="text-amber-500">{timeAttackState?.score}</span></div>
                             <div className="text-lg text-red-500">Time Left: {timeAttackState?.timeLeft}s</div>
                         </div>
                         {quizComponent}
@@ -702,8 +706,15 @@ export default function App() {
     }
 
     switch(activeCategory) {
-      case 'collectibles':
-        return <CollectiblesZone points={points} collectedFacts={collectedFacts} cost={COST_PER_FACT} onBuyFact={handleBuyFact} areAllFactsCollected={areAllFactsCollected} onViewFact={handleViewFact} />;
+      case 'adventure':
+        return <AdventureZone
+            points={points}
+            collectedFacts={collectedFacts}
+            cost={COST_PER_FACT}
+            onBuyFact={handleBuyFact}
+            areAllFactsCollected={areAllFactsCollected}
+            onViewFact={handleViewFact}
+        />;
       case 'tree':
         if (treeSortMode === 'topic') {
             if (activeTopic) {
@@ -754,30 +765,32 @@ export default function App() {
         theme={theme}
         onThemeToggle={handleThemeToggle} 
         onAdReward={handleAdReward}
+        language={language}
+        onLanguageChange={setLanguage}
       />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
       {factForModal && <FactModal fact={factForModal.fact} title={factForModal.title} onClose={handleCloseFactModal} />}
-      <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen font-sans bg-stone-50 dark:bg-stone-950 p-4 sm:p-6 lg:p-8 transition-colors duration-300">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-sky-600 dark:text-sky-400">
-              ASL Clicker
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-indigo-600 dark:text-indigo-400">
+              Handomics
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Sign, Learn, and Ascend!
+            <p className="text-stone-600 dark:text-stone-400 mt-2">
+              The Language of Hands, Mastered.
             </p>
           </div>
           <div className="flex items-center space-x-2">
              <button
                 onClick={() => setIsHelpOpen(true)}
-                className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900 focus:ring-sky-500 transition-colors"
+                className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-stone-50 dark:focus:ring-offset-stone-950 focus:ring-indigo-500 transition-colors"
                 aria-label="Open help menu"
               >
                 <QuestionMarkCircleIcon className="h-6 w-6" />
               </button>
              <button
                 onClick={() => setIsOptionsOpen(true)}
-                className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900 focus:ring-sky-500 transition-colors"
+                className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-stone-50 dark:focus:ring-offset-stone-950 focus:ring-indigo-500 transition-colors"
                 aria-label="Open options menu"
               >
                 <CogIcon className="h-6 w-6" />
@@ -796,8 +809,8 @@ export default function App() {
           </div>
         </main>
         
-        <footer className="text-center mt-12 text-sm text-slate-500 dark:text-slate-500">
-            <p>Created by a World-Class Senior Frontend React Engineer.</p>
+        <footer className="text-center mt-12 text-sm text-stone-500 dark:text-stone-500">
+            <p>Sign language images are the property of JD. Not for distribution without permission.</p>
         </footer>
       </div>
     </>
