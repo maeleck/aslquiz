@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 import type { AlphabetSign, Category, DictionaryEntry, Phrase } from '../types';
@@ -23,7 +24,8 @@ interface QuizZoneProps {
   feedback: { choice: string, correct: boolean } | null;
   isAnswered: boolean;
   pointsPerCorrectAnswer: number;
-  onSkip: () => void;
+  onBack: () => void;
+  onNextQuestion: () => void;
   isGenerating: boolean;
   correctAnswer: string;
   isTimeAttack?: boolean;
@@ -134,7 +136,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
   mode, category, level, maxLevel, onLevelChange,
   questionSigns, questionVocab, questionPhrase, choices, choiceSigns, choiceVocab, choicePhrases,
   onSelectChoice, onWordSubmit, userAnswer, onUserAnswerChange,
-  feedback, isAnswered, pointsPerCorrectAnswer, onSkip, isGenerating, correctAnswer, isTimeAttack = false,
+  feedback, isAnswered, pointsPerCorrectAnswer, onBack, onNextQuestion, isGenerating, correctAnswer, isTimeAttack = false,
   topicLabel
 }) => {
   
@@ -262,6 +264,17 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
   }
 
   const renderChoices = () => {
+    if (isAnswered && !isTimeAttack) {
+        return (
+            <button
+                onClick={onNextQuestion}
+                className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800 transition-colors text-lg animate-fade-in-up"
+            >
+                Next Question
+            </button>
+        )
+    }
+
     if (mode === 'reversal') {
         if (category === 'phrases') {
             return (
@@ -435,14 +448,14 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
       <div className="w-full max-w-md flex justify-end">
           {!isTimeAttack && (
             <button
-                onClick={onSkip}
-                disabled={isAnswered || isGenerating}
+                onClick={onBack}
+                disabled={isGenerating}
                 className="text-sm text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center gap-1"
-                aria-label="Skip question and reset streak"
+                aria-label="Back to activities"
             >
-                Skip
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                Back to Activities
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
             </button>
           )}

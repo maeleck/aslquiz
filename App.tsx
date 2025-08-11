@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
 import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode } from './types';
@@ -6,7 +8,6 @@ import { StatsDisplay } from './components/StatsDisplay';
 import { QuizZone } from './components/QuizZone';
 import { CollectiblesZone } from './components/CollectiblesZone';
 import { FactModal } from './components/FactModal';
-import { ThemeToggle } from './components/ThemeToggle';
 import { CategorySelector } from './components/CategorySelector';
 import { PlaceholderZone } from './components/PlaceholderZone';
 import { SubCategorySelector } from './components/SubCategorySelector';
@@ -20,6 +21,7 @@ import { LevelSelectorZone } from './components/LevelSelectorZone';
 import { HelpModal } from './components/HelpModal';
 import { TreeHomeZone } from './components/TreeHomeZone';
 import { CommonalityLevelSelectorZone } from './components/CommonalityLevelSelectorZone';
+import { showRewardedVideo } from './services/ads';
 
 
 interface GameState {
@@ -141,6 +143,36 @@ export default function App() {
   }, [timeAttackState]);
 
   const { points, streak, collectedFacts, unlockedTopics } = gameState;
+  
+  const generateAndSetWordSubset = useCallback((wordPool: DictionaryEntry[] | null) => {
+    if (!wordPool || wordPool.length === 0) {
+        setCurrentWordSet([]);
+        return;
+    }
+    const shuffled = shuffleArray(wordPool);
+    const subset = shuffled.slice(0, 10);
+    setCurrentWordSet(subset);
+  }, []);
+
+  useEffect(() => {
+    // When user enters the main vocabulary review, prepare the word pool and initial set.
+    if (activeCategory === 'vocabulary' && !activeSubCategory) {
+        const unlockedWords = new Set<string>();
+        unlockedTopics.forEach(topicId => {
+            STRUCTURED_VOCAB[topicId]?.levels.forEach(level => {
+                level.words.forEach(word => unlockedWords.add(word));
+            });
+        });
+        
+        const wordPool = Array.from(unlockedWords)
+            .map(word => wordMap.get(word))
+            .filter(Boolean) as DictionaryEntry[];
+        
+        setActiveLevelWordPool(wordPool);
+        generateAndSetWordSubset(wordPool);
+    }
+  }, [activeCategory, activeSubCategory, unlockedTopics, wordMap, generateAndSetWordSubset]);
+
 
   const generateNewQuestion = useCallback((category: Category, level: number, mode: 'normal' | 'reversal') => {
     setIsGenerating(true);
@@ -189,23 +221,19 @@ export default function App() {
             setCorrectAnswer(word);
         }
     } else if (category === 'vocabulary' || category === 'tree') {
-        let vocabList: DictionaryEntry[] = [];
-        if (category === 'tree' && currentWordSet) {
-            vocabList = currentWordSet;
-        } else { // 'vocabulary' review tab
-             vocabList = WORD_DICTIONARY;
+        if (!currentWordSet || currentWordSet.length === 0) {
+            console.error("No vocabulary words available for this set.");
+            setIsGenerating(false);
+            return;
         }
+        const vocabList = currentWordSet;
         
         if (vocabList.length < 4 && (mode === 'reversal' || activeSubCategory?.includes('reversal'))) {
             console.error("Not enough vocabulary words for a reversal quiz.");
             setIsGenerating(false);
             return;
         }
-         if (vocabList.length < 1) {
-            console.error("No vocabulary words available for this topic/set.");
-            setIsGenerating(false);
-            return;
-        }
+
         if (mode === 'reversal') {
             const correctEntry = vocabList[Math.floor(Math.random() * vocabList.length)];
             setCorrectAnswer(correctEntry.term);
@@ -220,7 +248,10 @@ export default function App() {
             }
              // Ensure enough distractors were found
             while(distractors.length < 3 && distractors.length < vocabList.length - 1) {
-                distractors.push(correctEntry);
+                const randomEntry = vocabList[Math.floor(Math.random() * vocabList.length)];
+                if (!distractors.some(d => d.term === randomEntry.term)) {
+                    distractors.push(randomEntry);
+                }
             }
             setChoiceVocab(shuffleArray([correctEntry, ...distractors]));
         } else { // Normal vocab quiz
@@ -238,7 +269,10 @@ export default function App() {
             }
             // Ensure enough distractors were found
             while(distractors.length < 3 && distractors.length < vocabList.length -1) {
-                distractors.push(correctEntry.term);
+                const randomWord = vocabList[Math.floor(Math.random() * vocabList.length)].term;
+                if (!distractors.includes(randomWord)) {
+                    distractors.push(randomWord);
+                }
             }
             setChoices(shuffleArray([correctEntry.term, ...distractors]));
         }
@@ -286,9 +320,9 @@ export default function App() {
     const isQuizActive = ['quiz', 'reversal-quiz', 'time-attack', 'reversal-time-attack', 'matching'].includes(activeSubCategory || '');
     const isPlayableCategory = ['alphabet', 'vocabulary', 'phrases', 'tree'].includes(activeCategory);
 
-    if (isStandardQuiz && isPlayableCategory) {
-      // Don't generate question for 'tree' if word set isn't ready
-      if(activeCategory === 'tree' && !currentWordSet) return;
+    if (isStandardQuiz && isPlayableCategory && !isAnswered) {
+      // Don't generate question for 'tree' or 'vocabulary' if word set isn't ready
+      if((activeCategory === 'tree' || activeCategory === 'vocabulary') && !currentWordSet) return;
       generateNewQuestion(activeCategory, currentLevel, getQuizMode());
     } else if (!isQuizActive) {
       // Clear question state if we are not in any quiz/game mode (e.g., on category selector, or in dictionary/collectibles)
@@ -296,7 +330,7 @@ export default function App() {
       setCurrentVocabQuestion(null);
       setCurrentPhraseQuestion(null);
     }
-  }, [activeCategory, activeSubCategory, currentLevel, generateNewQuestion, getQuizMode, currentWordSet]);
+  }, [activeCategory, activeSubCategory, currentLevel, generateNewQuestion, getQuizMode, currentWordSet, isAnswered]);
   
   const handleChoiceSelection = useCallback((selectedAnswer: string) => {
     if (isAnswered) return;
@@ -325,7 +359,6 @@ export default function App() {
       } else {
           setGameState(prevState => ({ ...prevState, streak: 0 }));
       }
-      setTimeout(() => generateNewQuestion(activeCategory, currentLevel, getQuizMode()), isCorrect ? 1000 : 1500);
     }
   }, [isAnswered, correctAnswer, generateNewQuestion, currentLevel, getQuizMode, activeCategory, activeSubCategory]);
 
@@ -356,20 +389,21 @@ export default function App() {
         } else {
             setGameState(prevState => ({ ...prevState, streak: 0 }));
         }
-        setTimeout(() => generateNewQuestion(activeCategory, currentLevel, getQuizMode()), isCorrect ? 1200 : 2000);
     }
   }, [isAnswered, userAnswer, correctAnswer, generateNewQuestion, currentLevel, getQuizMode, activeCategory, activeSubCategory]);
   
-  const handleSkipQuestion = useCallback(() => {
-    if (isAnswered || isGenerating) return;
-    setGameState(prevState => ({ ...prevState, streak: 0 }));
+  const handleNextQuestion = useCallback(() => {
     generateNewQuestion(activeCategory, currentLevel, getQuizMode());
-  }, [isAnswered, isGenerating, generateNewQuestion, currentLevel, getQuizMode, activeCategory]);
+  }, [generateNewQuestion, activeCategory, currentLevel, getQuizMode]);
+
+  const handleBackToActivities = useCallback(() => {
+    setActiveSubCategory(null);
+  }, []);
 
   const handleStartTimeAttack = () => {
     setTimeAttackState({ isActive: true, timeLeft: 30, score: 0, isFinished: false });
-    // Don't generate question for 'tree' if word set isn't ready
-    if(activeCategory === 'tree' && !currentWordSet) return;
+    // Don't generate question if word set isn't ready
+    if((activeCategory === 'tree' || activeCategory === 'vocabulary') && !currentWordSet) return;
     generateNewQuestion(activeCategory, currentLevel, getQuizMode());
   };
 
@@ -409,6 +443,15 @@ export default function App() {
   
   const handleCloseModal = () => setNewlyAcquiredFact(null);
   const handleThemeToggle = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  
+  const handleAdReward = useCallback((rewardPoints: number) => {
+    setGameState(prev => ({
+        ...prev,
+        points: prev.points + rewardPoints,
+    }));
+    alert(`You earned ${rewardPoints} points!`);
+    setIsOptionsOpen(false);
+  }, []);
 
   const handleResetProgress = () => {
     if (window.confirm('Are you sure you want to reset all your progress? This action cannot be undone.')) {
@@ -484,16 +527,6 @@ export default function App() {
       }
   };
 
-  const generateAndSetWordSubset = useCallback((wordPool: DictionaryEntry[] | null) => {
-    if (!wordPool || wordPool.length === 0) {
-        setCurrentWordSet([]);
-        return;
-    }
-    const shuffled = shuffleArray(wordPool);
-    const subset = shuffled.slice(0, 10);
-    setCurrentWordSet(subset);
-  }, []);
-
   const handleShuffleWords = useCallback(() => {
     generateAndSetWordSubset(activeLevelWordPool);
   }, [activeLevelWordPool, generateAndSetWordSubset]);
@@ -549,6 +582,7 @@ export default function App() {
   const isTimeAttack = activeSubCategory === 'time-attack' || activeSubCategory === 'reversal-time-attack';
   
   const getTopicLabel = () => {
+    if (activeCategory === 'vocabulary') return "Vocabulary Review";
     if (activeCategory !== 'tree') return undefined;
     if (treeSortMode === 'topic' && activeTopic) {
         return `${activeTopic.label}${activeVocabLevel ? ` - Level ${activeVocabLevel}` : ''}`;
@@ -580,7 +614,8 @@ export default function App() {
         feedback={feedback}
         isAnswered={isAnswered}
         pointsPerCorrectAnswer={POINTS_PER_CORRECT_ANSWER}
-        onSkip={handleSkipQuestion}
+        onBack={handleBackToActivities}
+        onNextQuestion={handleNextQuestion}
         isGenerating={isGenerating}
         correctAnswer={correctAnswer}
         isTimeAttack={isTimeAttack}
@@ -591,7 +626,7 @@ export default function App() {
     currentQuestionSigns, currentVocabQuestion, currentPhraseQuestion,
     choices, choiceSigns, choiceVocab, choicePhrases,
     handleChoiceSelection, handleWordSubmit, userAnswer,
-    feedback, isAnswered, handleSkipQuestion, isGenerating,
+    feedback, isAnswered, handleBackToActivities, handleNextQuestion, isGenerating,
     correctAnswer, isTimeAttack, activeTopic, activeVocabLevel, treeSortMode
   ]);
 
@@ -618,10 +653,10 @@ export default function App() {
   );
   
     const getWordsForMatching = () => {
-        if (activeCategory === 'tree' && currentWordSet) {
+        if ((activeCategory === 'tree' || activeCategory === 'vocabulary') && currentWordSet) {
             return currentWordSet;
         }
-        // Let MatchingGameZone handle defaults for 'alphabet' and 'vocabulary' review.
+        // Let MatchingGameZone handle defaults for 'alphabet'.
         return undefined;
     };
 
@@ -652,11 +687,11 @@ export default function App() {
             case 'matching':
                 const wordsForMatching = getWordsForMatching();
                 // Matching game needs at least 8 items for an 8-pair (16-card) board.
-                if (activeCategory === 'tree' && (!wordsForMatching || wordsForMatching.length < 8)) {
+                if ((activeCategory === 'tree' || activeCategory === 'vocabulary') && (!wordsForMatching || wordsForMatching.length < 8)) {
                     return (
                         <PlaceholderZone
                             title="Not Enough Words"
-                            message="This level doesn't have enough words for a Matching Game. Try getting a new set of words or choose another activity."
+                            message="This set doesn't have enough words for a Matching Game. Try getting a new set of words or choose another activity."
                         />
                     );
                 }
@@ -693,13 +728,18 @@ export default function App() {
         return <StoryZone onCorrectAnswer={handleStoryCorrectAnswer} onIncorrectAnswer={handleStoryIncorrectAnswer} />;
       
       case 'alphabet':
-      case 'vocabulary':
       case 'phrases':
         if (!activeSubCategory) {
             return <SubCategorySelector category={activeCategory} onSelect={handleSelectSubCategory} />;
         }
         return renderQuizContainer();
       
+      case 'vocabulary':
+        if (!activeSubCategory) {
+            return <SubCategorySelector category={activeCategory} onSelect={handleSelectSubCategory} onShuffleWords={handleShuffleWords} />;
+        }
+        return renderQuizContainer();
+
       default:
         return null;
     }
@@ -707,18 +747,26 @@ export default function App() {
 
   return (
     <>
-      {isOptionsOpen && <OptionsModal onClose={() => setIsOptionsOpen(false)} onReset={handleResetProgress} />}
+      {isOptionsOpen && <OptionsModal 
+        onClose={() => setIsOptionsOpen(false)} 
+        onReset={handleResetProgress}
+        theme={theme}
+        onThemeToggle={handleThemeToggle} 
+        onAdReward={handleAdReward}
+      />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
       {newlyAcquiredFact && <FactModal fact={newlyAcquiredFact} onClose={handleCloseModal} />}
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-8">
-        <header className="text-center mb-8 relative">
-          <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-400">
-            ASL Clicker
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Sign, Learn, and Ascend!
-          </p>
-          <div className="absolute top-0 right-0 flex items-center space-x-2">
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-400">
+              ASL Clicker
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-2">
+              Sign, Learn, and Ascend!
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
              <button
                 onClick={() => setIsHelpOpen(true)}
                 className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900 focus:ring-sky-500 transition-colors"
@@ -733,7 +781,6 @@ export default function App() {
               >
                 <CogIcon className="h-6 w-6" />
               </button>
-             <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
           </div>
         </header>
         
