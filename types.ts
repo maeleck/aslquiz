@@ -1,3 +1,4 @@
+
 export interface AlphabetSign {
   letter: string;
   imageUrl: string;
@@ -7,6 +8,7 @@ export type Category = 'alphabet' | 'vocabulary' | 'phrases' | 'tree' | 'adventu
 export type SubCategory = 'quiz' | 'reversal-quiz' | 'time-attack' | 'reversal-time-attack' | 'matching';
 export type TreeSortMode = 'topic' | 'commonality';
 export type Language = 'ASL' | 'JSL' | 'LSM' | 'LSF' | 'VSL';
+export type AdventureSubCategory = 'world-map' | 'city-map' | 'job' | 'quest' | 'market';
 
 export interface VocabTopic {
     id: string;

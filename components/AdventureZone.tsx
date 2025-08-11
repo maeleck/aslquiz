@@ -1,61 +1,71 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card } from './Card';
-import { CollectiblesZone } from './CollectiblesZone';
-import { GlobeAltIcon } from './Icons';
+import type { AdventureSubCategory } from '../types';
+import { MapIcon, BriefcaseIcon, ClipboardListIcon, ShoppingCartIcon, GlobeAltIcon } from './Icons';
 
 interface AdventureZoneProps {
-    points: number;
-    collectedFacts: string[];
-    cost: number;
-    onBuyFact: () => void;
-    onViewFact: (fact: string) => void;
-    areAllFactsCollected: boolean;
+    onSelect: (subCategory: AdventureSubCategory) => void;
 }
 
-type AdventureView = 'map' | 'collectibles';
+const adventureOptions: { id: AdventureSubCategory; label: string; description: string; icon: React.FC<{className?: string}> }[] = [
+    {
+        id: 'world-map',
+        label: 'World Map',
+        description: 'Explore the globe to find stories and challenges.',
+        icon: GlobeAltIcon,
+    },
+    {
+        id: 'city-map',
+        label: 'City Map',
+        description: 'Explore interactive locations and find new stories.',
+        icon: MapIcon,
+    },
+    {
+        id: 'job',
+        label: 'Job',
+        description: 'Take on jobs to test your skills and earn Game Cash.',
+        icon: BriefcaseIcon,
+    },
+    {
+        id: 'quest',
+        label: 'Quest',
+        description: 'Embark on guided quests with unique challenges.',
+        icon: ClipboardListIcon,
+    },
+    {
+        id: 'market',
+        label: 'Market',
+        description: 'Spend your Game Cash on items and upgrades.',
+        icon: ShoppingCartIcon,
+    }
+];
 
-const TabButton: React.FC<{label: string, isActive: boolean, onClick: () => void}> = ({ label, isActive, onClick }) => (
-    <button
-      onClick={onClick}
-      className={`whitespace-nowrap py-3 px-6 border-b-2 font-semibold text-base transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-stone-950 focus:ring-amber-500 rounded-t-lg
-        ${isActive
-          ? 'border-amber-500 text-amber-600 dark:border-amber-400 dark:text-amber-400'
-          : 'border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-500'
-        }
-      `}
-      aria-current={isActive ? 'page' : undefined}
-    >
-      {label}
-    </button>
-);
-
-export const AdventureZone: React.FC<AdventureZoneProps> = (props) => {
-    const [activeView, setActiveView] = useState<AdventureView>('map');
-    
+export const AdventureZone: React.FC<AdventureZoneProps> = ({ onSelect }) => {
     return (
-        <div className="h-full flex flex-col">
-            <div className="border-b border-stone-200 dark:border-stone-700 mb-6">
-                <nav className="flex justify-center space-x-4" aria-label="Adventure sections">
-                    <TabButton label="World Map" isActive={activeView === 'map'} onClick={() => setActiveView('map')} />
-                    <TabButton label="Collectibles" isActive={activeView === 'collectibles'} onClick={() => setActiveView('collectibles')} />
-                </nav>
-            </div>
+        <Card className="h-full flex flex-col">
+            <h3 className="text-2xl font-bold mb-2 text-center text-stone-700 dark:text-stone-200">Adventure Mode</h3>
+            <p className="text-center text-stone-500 dark:text-stone-400 mb-6">Choose an activity to begin your adventure.</p>
 
-            {activeView === 'map' && (
-                <Card>
-                    <div className="flex flex-col items-center justify-center text-center h-full min-h-[400px] py-8">
-                        <div className="perspective-1000">
-                            <GlobeAltIcon className="w-48 h-48 text-indigo-500 dark:text-indigo-400 spinning-globe"/>
+            <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
+                {adventureOptions.map(opt => (
+                     <button 
+                        key={opt.id} 
+                        onClick={() => onSelect(opt.id)}
+                        className={`p-6 rounded-lg border-2 text-left transition-all duration-200 flex flex-col
+                            border-amber-500 bg-amber-50 dark:bg-amber-900/50 hover:bg-amber-100 dark:hover:bg-amber-800/60 cursor-pointer
+                            focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800
+                        `}
+                    >
+                        <div className="flex items-center mb-2">
+                           <opt.icon className="h-7 w-7 mr-3 text-amber-600 dark:text-amber-400" />
+                           <h3 className="text-xl font-bold text-stone-800 dark:text-stone-100">{opt.label}</h3>
                         </div>
-                        <h2 className="text-2xl font-bold mt-6 text-stone-800 dark:text-stone-200">Explore the World</h2>
-                        <p className="mt-2 max-w-sm text-stone-600 dark:text-stone-400">Future home of interactive stories from around the globe. For now, enjoy the spin!</p>
-                    </div>
-                </Card>
-            )}
-
-            {activeView === 'collectibles' && (
-                <CollectiblesZone {...props} />
-            )}
-        </div>
+                        <p className="text-stone-600 dark:text-stone-400 flex-grow">{opt.description}</p>
+                         <span className="mt-4 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 rounded-full self-start">Coming Soon</span>
+                    </button>
+                ))}
+            </div>
+        </Card>
     );
 };

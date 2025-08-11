@@ -1,8 +1,6 @@
-
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
-import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode, Language } from './types';
+import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode, Language, AdventureSubCategory } from './types';
 import { StatsDisplay } from './components/StatsDisplay';
 import { QuizZone } from './components/QuizZone';
 import { CollectiblesZone } from './components/CollectiblesZone';
@@ -26,18 +24,22 @@ import { showRewardedVideo } from './services/ads';
 
 interface GameState {
   points: number;
+  gameCash: number;
   collectedFacts: string[];
   streak: number;
   unlockedTopics: string[];
+  lastLoginDate: string | null;
 }
 
 const STORAGE_KEY = 'aslQuizProgress';
 
 const initialGameState: GameState = {
   points: 0,
+  gameCash: 0,
   collectedFacts: [],
   streak: 0,
   unlockedTopics: ['basics'],
+  lastLoginDate: null,
 };
 
 type TimeAttackState = {
@@ -81,6 +83,7 @@ export default function App() {
   
   const [activeCategory, setActiveCategory] = useState<Category>('tree');
   const [activeSubCategory, setActiveSubCategory] = useState<SubCategory | null>(null);
+  const [activeAdventureSubCategory, setActiveAdventureSubCategory] = useState<AdventureSubCategory | null>(null);
   const [activeTopic, setActiveTopic] = useState<VocabTopic | null>(null);
   const [activeVocabLevel, setActiveVocabLevel] = useState<number | null>(null);
   const [treeSortMode, setTreeSortMode] = useState<TreeSortMode | null>(null);
@@ -120,6 +123,35 @@ export default function App() {
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Daily Streak Logic
+  useEffect(() => {
+    const today = new Date();
+    const lastLogin = gameState.lastLoginDate ? new Date(gameState.lastLoginDate) : null;
+    let shouldUpdateStreak = false;
+
+    if (!lastLogin) {
+      // First time login ever, grant first day of streak
+      shouldUpdateStreak = true;
+    } else {
+      // Check if the last login was on a different calendar day
+      const isDifferentDay = today.getFullYear() !== lastLogin.getFullYear() ||
+                             today.getMonth() !== lastLogin.getMonth() ||
+                             today.getDate() !== lastLogin.getDate();
+      if (isDifferentDay) {
+        shouldUpdateStreak = true;
+      }
+    }
+    
+    if (shouldUpdateStreak) {
+      setGameState(prev => ({
+        ...prev,
+        streak: prev.streak + 1,
+        lastLoginDate: today.toISOString()
+      }));
+    }
+  }, []); // Run only once on initial app load
+
   
   useEffect(() => {
     try {
@@ -143,7 +175,7 @@ export default function App() {
     }
   }, [timeAttackState]);
 
-  const { points, streak, collectedFacts, unlockedTopics } = gameState;
+  const { points, streak, collectedFacts, unlockedTopics, gameCash } = gameState;
   
   const generateAndSetWordSubset = useCallback((wordPool: DictionaryEntry[] | null) => {
     if (!wordPool || wordPool.length === 0) {
@@ -355,10 +387,7 @@ export default function App() {
         setGameState(prevState => ({
           ...prevState,
           points: prevState.points + POINTS_PER_CORRECT_ANSWER,
-          streak: prevState.streak + 1,
         }));
-      } else {
-          setGameState(prevState => ({ ...prevState, streak: 0 }));
       }
     }
   }, [isAnswered, correctAnswer, generateNewQuestion, currentLevel, getQuizMode, activeCategory, activeSubCategory]);
@@ -385,10 +414,7 @@ export default function App() {
             setGameState(prevState => ({
             ...prevState,
             points: prevState.points + pointsToAward,
-            streak: prevState.streak + 1,
             }));
-        } else {
-            setGameState(prevState => ({ ...prevState, streak: 0 }));
         }
     }
   }, [isAnswered, userAnswer, correctAnswer, generateNewQuestion, currentLevel, getQuizMode, activeCategory, activeSubCategory]);
@@ -421,12 +447,11 @@ export default function App() {
     setGameState(prev => ({
         ...prev,
         points: prev.points + 2,
-        streak: prev.streak + 1,
     }));
   }, []);
 
   const handleStoryIncorrectAnswer = useCallback(() => {
-      setGameState(prev => ({ ...prev, streak: 0 }));
+      // No penalty for incorrect story answers
   }, []);
 
   const handleBuyFact = useCallback(() => {
@@ -463,6 +488,7 @@ export default function App() {
         setGameState(initialGameState);
         setActiveCategory('tree');
         setActiveSubCategory(null);
+        setActiveAdventureSubCategory(null);
         setActiveTopic(null);
         setActiveVocabLevel(null);
         setTreeSortMode(null);
@@ -488,6 +514,7 @@ export default function App() {
       }
       setActiveCategory(category);
       setActiveSubCategory(null);
+      setActiveAdventureSubCategory(null);
       setActiveTopic(null);
       setActiveVocabLevel(null);
       setTreeSortMode(null);
@@ -707,14 +734,11 @@ export default function App() {
 
     switch(activeCategory) {
       case 'adventure':
-        return <AdventureZone
-            points={points}
-            collectedFacts={collectedFacts}
-            cost={COST_PER_FACT}
-            onBuyFact={handleBuyFact}
-            areAllFactsCollected={areAllFactsCollected}
-            onViewFact={handleViewFact}
-        />;
+        if (activeAdventureSubCategory) {
+            const title = activeAdventureSubCategory.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return <PlaceholderZone title={title} message="This feature is coming soon!" onBack={() => setActiveAdventureSubCategory(null)} />;
+        }
+        return <AdventureZone onSelect={setActiveAdventureSubCategory} />;
       case 'tree':
         if (treeSortMode === 'topic') {
             if (activeTopic) {
@@ -735,7 +759,14 @@ export default function App() {
         }
         return <TreeHomeZone onSelect={setTreeSortMode} />;
       case 'dictionary':
-        return <DictionaryZone />;
+        return <DictionaryZone 
+            points={points}
+            collectedFacts={collectedFacts}
+            cost={COST_PER_FACT}
+            onBuyFact={handleBuyFact}
+            areAllFactsCollected={areAllFactsCollected}
+            onViewFact={handleViewFact}
+        />;
       case 'story':
         return <StoryZone onCorrectAnswer={handleStoryCorrectAnswer} onIncorrectAnswer={handleStoryIncorrectAnswer} />;
       
@@ -799,7 +830,7 @@ export default function App() {
         </header>
         
         <main className="max-w-4xl mx-auto">
-          <StatsDisplay points={points} streak={streak} />
+          <StatsDisplay points={points} streak={streak} gameCash={gameCash} />
           
           <div className="mt-8">
             <CategorySelector activeCategory={activeCategory} onSelectCategory={handleSelectCategory} />

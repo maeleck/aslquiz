@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Card } from './Card';
-import { QuestionMarkCircleIcon, BookOpenIcon, CogIcon, SparklesIcon, SitemapIcon, GraduationCapIcon, GlobeAltIcon } from './Icons';
+import { QuestionMarkCircleIcon, BookOpenIcon, SparklesIcon, SitemapIcon, GraduationCapIcon, GlobeAltIcon, TrophyIcon, CurrencyDollarIcon } from './Icons';
 import { Category } from '../types';
 
 interface HelpModalProps {
@@ -35,16 +35,31 @@ const helpTopics: { id: string, title: string; description: string; icon: React.
     {
         id: 'adventure',
         title: 'Adventure',
-        description: 'Explore a spinning globe and access your collectible facts about ASL and Deaf culture.',
+        description: 'Explore the world and city maps, take on jobs, or embark on quests. Earn Game Cash to spend in the market. (Coming Soon!)',
         icon: GlobeAltIcon
     },
     {
         id: 'dictionary',
         title: 'Dictionary',
-        description: 'A complete reference of all signs available in the app. Look up specific words or letters whenever you need.',
+        description: 'A complete reference of all signs available in the app. Look up specific words, letters, and view your collected facts.',
         icon: BookOpenIcon
     },
 ]
+
+const currencyTopics: { id: string, title: string; description: string; icon: React.FC<{className?: string}> }[] = [
+    {
+        id: 'points',
+        title: 'Points',
+        description: 'Earn points by correctly answering questions. Use them to unlock vocabulary topics in the Tree and buy collectible facts in the Dictionary.',
+        icon: TrophyIcon
+    },
+    {
+        id: 'game-cash',
+        title: 'Game Cash (GC)',
+        description: 'The main currency for Adventure mode. Earn it from jobs and quests, then spend it in the Market. (Adventure Mode Coming Soon!)',
+        icon: CurrencyDollarIcon
+    }
+];
 
 export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
   useEffect(() => {
@@ -84,6 +99,21 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            <div className="mt-8 border-t border-stone-200 dark:border-stone-700 pt-6">
+                <h3 className="text-xl font-bold text-stone-800 dark:text-stone-200 mb-4 text-center">Currencies</h3>
+                <div className="space-y-4">
+                     {currencyTopics.map(topic => (
+                        <div key={topic.id} className="flex items-start p-4 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
+                            <topic.icon className="w-7 h-7 text-indigo-500 dark:text-indigo-400 mr-4 mt-1 flex-shrink-0" />
+                            <div>
+                                <h3 className="font-bold text-lg text-stone-800 dark:text-stone-200">{topic.title}</h3>
+                                <p className="text-stone-600 dark:text-stone-400">{topic.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
             
             <button
