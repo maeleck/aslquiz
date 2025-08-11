@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from './Card';
 import type { Category, SubCategory, VocabTopic } from '../types';
@@ -82,7 +81,7 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
                     &larr; Back to Levels
                 </button>
             )}
-            <h2 className={`text-2xl font-bold ${colors.text}`}>{title}</h2>
+            <h2 className={`text-xl md:text-2xl font-bold ${colors.text}`}>{title}</h2>
             {onShuffleWords && (
                 <button
                     onClick={onShuffleWords}

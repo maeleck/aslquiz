@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
 import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode } from './types';
@@ -64,7 +61,7 @@ export default function App() {
     return initialGameState;
   });
   
-  const [newlyAcquiredFact, setNewlyAcquiredFact] = useState<string | null>(null);
+  const [factForModal, setFactForModal] = useState<{ fact: string, title: string } | null>(null);
   
   // Quiz state
   const [currentQuestionSigns, setCurrentQuestionSigns] = useState<AlphabetSign[]>([]);
@@ -437,11 +434,15 @@ export default function App() {
         points: prevState.points - COST_PER_FACT,
         collectedFacts: [...prevState.collectedFacts, newFact]
       }));
-      setNewlyAcquiredFact(newFact);
+      setFactForModal({ fact: newFact, title: "New Fact Unlocked!" });
     }
   }, [gameState]);
   
-  const handleCloseModal = () => setNewlyAcquiredFact(null);
+  const handleViewFact = useCallback((fact: string) => {
+    setFactForModal({ fact, title: "Fact" });
+  }, []);
+
+  const handleCloseFactModal = () => setFactForModal(null);
   const handleThemeToggle = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   
   const handleAdReward = useCallback((rewardPoints: number) => {
@@ -702,7 +703,7 @@ export default function App() {
 
     switch(activeCategory) {
       case 'collectibles':
-        return <CollectiblesZone points={points} collectedFacts={collectedFacts} cost={COST_PER_FACT} onBuyFact={handleBuyFact} areAllFactsCollected={areAllFactsCollected} />;
+        return <CollectiblesZone points={points} collectedFacts={collectedFacts} cost={COST_PER_FACT} onBuyFact={handleBuyFact} areAllFactsCollected={areAllFactsCollected} onViewFact={handleViewFact} />;
       case 'tree':
         if (treeSortMode === 'topic') {
             if (activeTopic) {
@@ -755,11 +756,11 @@ export default function App() {
         onAdReward={handleAdReward}
       />}
       {isHelpOpen && <HelpModal onClose={() => setIsHelpOpen(false)} />}
-      {newlyAcquiredFact && <FactModal fact={newlyAcquiredFact} onClose={handleCloseModal} />}
+      {factForModal && <FactModal fact={factForModal.fact} title={factForModal.title} onClose={handleCloseFactModal} />}
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-8">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-sky-600 dark:text-sky-400">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-sky-600 dark:text-sky-400">
               ASL Clicker
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-2">

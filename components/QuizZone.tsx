@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 import type { AlphabetSign, Category, DictionaryEntry, Phrase } from '../types';
@@ -230,7 +228,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
 
   const renderQuestion = () => {
       if (mode === 'reversal') {
-          return <div className="text-4xl md:text-6xl font-bold text-center text-slate-800 dark:text-slate-200 p-4">{correctAnswer}</div>;
+          return <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-center text-slate-800 dark:text-slate-200 p-4">{correctAnswer}</div>;
       }
       const questionMedia = questionVocab || currentPhraseSign;
       if (((category === 'vocabulary' || category === 'tree') || category === 'phrases') && questionMedia) {
@@ -415,7 +413,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
         })}
       </div>}
       
-      <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-1 text-center">
+      <h2 className="text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-300 mb-1 text-center">
         {getQuestionTitle()}
       </h2>
       

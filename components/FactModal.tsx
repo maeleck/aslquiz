@@ -3,10 +3,11 @@ import { Card } from './Card';
 
 interface FactModalProps {
   fact: string;
+  title: string;
   onClose: () => void;
 }
 
-export const FactModal: React.FC<FactModalProps> = ({ fact, onClose }) => {
+export const FactModal: React.FC<FactModalProps> = ({ fact, title, onClose }) => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -28,7 +29,7 @@ export const FactModal: React.FC<FactModalProps> = ({ fact, onClose }) => {
       <div onClick={e => e.stopPropagation()} className="w-full max-w-md">
         <Card className="animate-fade-in-up">
             <h2 id="fact-modal-title" className="text-2xl font-bold text-sky-600 dark:text-sky-400 mb-4">
-                New Fact Unlocked!
+                {title}
             </h2>
             <blockquote className="text-lg italic text-slate-700 dark:text-slate-200 border-l-4 border-sky-500 pl-4 py-2 bg-slate-100 dark:bg-slate-700/50 rounded-r-lg">
                 {fact}

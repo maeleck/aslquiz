@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from './Card';
 import type { TreeSortMode } from '../types';
@@ -24,7 +23,7 @@ export const TreeHomeZone: React.FC<TreeHomeZoneProps> = ({ onSelect }) => {
                         aria-label="Learn vocabulary sorted by topic"
                     >
                         <UsersIcon className="h-10 w-10 mb-3 text-green-600 dark:text-green-400" />
-                        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">By Topic</h4>
+                        <h4 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100">By Topic</h4>
                         <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm">Unlock and master words in thematic groups.</p>
                     </button>
                     <button
@@ -35,7 +34,7 @@ export const TreeHomeZone: React.FC<TreeHomeZoneProps> = ({ onSelect }) => {
                         aria-label="Learn vocabulary sorted by commonality"
                     >
                         <GraduationCapIcon className="h-10 w-10 mb-3 text-sky-600 dark:text-sky-400" />
-                        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">By Commonality</h4>
+                        <h4 className="text-lg md:text-xl font-bold text-slate-800 dark:text-slate-100">By Commonality</h4>
                         <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm">Learn words in progressive levels of difficulty.</p>
                     </button>
                 </div>

@@ -20,7 +20,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ points, streak }) =>
             <TrophyIcon />
             POINTS
           </span>
-          <span className="text-3xl font-bold text-sky-600 dark:text-sky-400">{formatNumber(points)}</span>
+          <span className="text-2xl sm:text-3xl font-bold text-sky-600 dark:text-sky-400">{formatNumber(points)}</span>
         </div>
         <div className="border-l border-slate-200 dark:border-slate-700 h-12"></div>
         <div className="flex flex-col items-center px-4">
@@ -28,7 +28,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ points, streak }) =>
             STREAK
             <StreakIcon />
           </span>
-          <span className="text-3xl font-bold text-amber-500 dark:text-amber-400">{formatNumber(streak)}</span>
+          <span className="text-2xl sm:text-3xl font-bold text-amber-500 dark:text-amber-400">{formatNumber(streak)}</span>
         </div>
       </div>
     </Card>

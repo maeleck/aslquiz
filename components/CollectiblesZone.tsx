@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from './Card';
 import { ASL_CULTURE_QUOTES } from '../constants';
@@ -9,6 +8,7 @@ interface CollectiblesZoneProps {
   collectedFacts: string[];
   cost: number;
   onBuyFact: () => void;
+  onViewFact: (fact: string) => void;
   areAllFactsCollected: boolean;
 }
 
@@ -16,7 +16,7 @@ const formatNumber = (num: number): string => {
   return num.toLocaleString('en-US');
 };
 
-export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, collectedFacts, cost, onBuyFact, areAllFactsCollected }) => {
+export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, collectedFacts, cost, onBuyFact, onViewFact, areAllFactsCollected }) => {
   const canAfford = points >= cost;
 
   return (
@@ -31,20 +31,26 @@ export const CollectiblesZone: React.FC<CollectiblesZoneProps> = ({ points, coll
           {ASL_CULTURE_QUOTES.map((fact, index) => {
             const isCollected = collectedFacts.includes(fact);
             return (
-              <div
+              <button
                 key={index}
-                className={`aspect-square rounded flex items-center justify-center transition-colors ${
-                  isCollected ? 'bg-green-500 dark:bg-green-600' : 'bg-slate-300 dark:bg-slate-600'
-                }`}
+                disabled={!isCollected}
+                onClick={() => isCollected && onViewFact(fact)}
+                className={`aspect-square rounded flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-sky-500
+                  ${
+                    isCollected 
+                    ? 'bg-green-500 dark:bg-green-600 cursor-pointer hover:bg-green-400' 
+                    : 'bg-slate-300 dark:bg-slate-600 cursor-not-allowed'
+                  }`
+                }
                 title={isCollected ? fact : 'Uncollected'}
-                aria-label={isCollected ? `Fact ${index + 1} collected` : `Fact ${index + 1} uncollected`}
+                aria-label={isCollected ? `View Fact ${index + 1}` : `Fact ${index + 1} uncollected`}
               >
                 {isCollected ? (
                   <CheckCircleIcon className="w-6 h-6 text-white" />
                 ) : (
                   <LockClosedIcon className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                 )}
-              </div>
+              </button>
             );
           })}
         </div>

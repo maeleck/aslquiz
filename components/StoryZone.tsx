@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 import { STORIES } from '../constants';
@@ -70,7 +68,7 @@ const PhrasePlayer: React.FC<{ phrase: Phrase }> = ({ phrase }) => {
             )}
              <div className="absolute bottom-3 left-3 right-3 flex justify-center items-center gap-2">
                 {phrase.signs.map((_, index) => (
-                    <div key={index} className={`h-2 flex-1 rounded-full transition-colors duration-300 ${displayIndex >= index ? 'bg-rose-500/80' : 'bg-slate-300/60 dark:bg-slate-900/60'}`}></div>
+                    <div key={index} className={`h-2 w-2 rounded-full transition-colors duration-300 ${displayIndex >= index ? 'bg-rose-500/80' : 'bg-slate-300/60 dark:bg-slate-900/60'}`}></div>
                 ))}
             </div>
         </div>
