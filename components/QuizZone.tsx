@@ -1,9 +1,13 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from './Card';
 import type { AlphabetSign, Category, DictionaryEntry, Phrase } from '../types';
 
+type QuizMode = 'normal' | 'reversal' | 'abc-to-sign';
+
 interface QuizZoneProps {
-  mode: 'normal' | 'reversal';
+  mode: QuizMode;
   category: Category;
   level: number;
   maxLevel: number;
@@ -58,6 +62,7 @@ const VocabChoiceButton: React.FC<{
                 muted
                 playsInline
                 autoPlay
+                loop
                 className="w-full h-full object-contain rounded-md"
             />
         </button>
@@ -152,14 +157,14 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
 
   // Handle image-based sign sequences (alphabet words)
   useEffect(() => {
-    if (category !== 'alphabet' || !questionSigns || questionSigns.length <= 1 || isAnswered) {
+    if ((category !== 'alphabet' && mode !== 'abc-to-sign') || !questionSigns || questionSigns.length <= 1 || isAnswered) {
       return;
     }
     const timerId = setInterval(() => {
       setDisplayIndex(prev => (prev + 1) % questionSigns.length);
     }, 1200);
     return () => clearInterval(timerId);
-  }, [category, questionSigns, isAnswered]);
+  }, [category, mode, questionSigns, isAnswered]);
 
   const handlePhraseVideoEnd = () => {
     if (questionPhrase && displayIndex < questionPhrase.signs.length - 1) {
@@ -168,8 +173,8 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
   };
   
   const handleRestartPlayback = () => {
-    // For phrases, reset the sequence index to restart from the first sign.
-    if (category === 'phrases') {
+    // For phrases or fingerspelling, reset the sequence index to restart from the first sign.
+    if (category === 'phrases' || mode === 'abc-to-sign' || (category === 'alphabet' && level > 1)) {
         setDisplayIndex(0);
     } 
     // For single vocabulary videos, seek to the beginning and play.
@@ -191,7 +196,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
     (mode === 'normal' && category === 'alphabet' && questionSigns.length === 0) ||
     (mode === 'normal' && (category === 'vocabulary' || category === 'tree') && !questionVocab) ||
     (mode === 'normal' && category === 'phrases' && !questionPhrase) ||
-    (mode === 'reversal' && !correctAnswer);
+    ((mode === 'reversal' || mode === 'abc-to-sign') && !correctAnswer);
 
   if (isLoading) {
     return (
@@ -231,7 +236,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
           return <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-center text-stone-800 dark:text-stone-200 p-4">{correctAnswer}</div>;
       }
       const questionMedia = questionVocab || currentPhraseSign;
-      if (((category === 'vocabulary' || category === 'tree') || category === 'phrases') && questionMedia) {
+      if (((category === 'vocabulary' || category === 'tree') || category === 'phrases') && questionMedia && mode === 'normal') {
           const videoClassName = `w-full h-full object-contain p-2 animate-fade-in-up`;
           return (
             <video
@@ -248,13 +253,14 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
           />
           );
       }
-      if (category === 'alphabet' && currentDisplaySign) {
+      if ((category === 'alphabet' || mode === 'abc-to-sign') && currentDisplaySign) {
           return (
             <img 
-              key={currentDisplaySign.imageUrl}
+              key={`${currentDisplaySign.imageUrl}-${displayIndex}`}
               src={currentDisplaySign.imageUrl} 
-              alt={level > 1 ? `Fingerspelling sign ${displayIndex + 1}` : `ASL sign`}
-              className="w-full h-full object-contain p-2 animate-fade-in-up"
+              alt={level > 1 || mode === 'abc-to-sign' ? `Fingerspelling sign ${displayIndex + 1}` : `ASL sign`}
+              className="w-full h-full object-contain p-2 animate-fade-in-up cursor-pointer"
+              onClick={handleRestartPlayback}
             />
           );
       }
@@ -273,6 +279,22 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
         )
     }
 
+    if (mode === 'abc-to-sign') {
+        return (
+            <div className="grid grid-cols-2 gap-4">
+                {choiceVocab.map(item => (
+                    <VocabChoiceButton 
+                        key={item.term}
+                        item={item}
+                        onClick={() => onSelectChoice(item.term)}
+                        disabled={isAnswered}
+                        buttonClass={getMediaChoiceClass(item.term)}
+                    />
+                ))}
+            </div>
+        );
+    }
+    
     if (mode === 'reversal') {
         if (category === 'phrases') {
             return (
@@ -376,6 +398,9 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
     }
     const noun = category === 'alphabet' ? 'letter' : (category === 'vocabulary' || category === 'tree') ? 'word' : 'phrase';
     const topicPrefix = topicLabel ? `${topicLabel}: ` : '';
+    if (mode === 'abc-to-sign') {
+        return `${topicPrefix}What ${correctAnswer.length > 0 ? `${correctAnswer.length}-letter ` : ''}word is this?`;
+    }
     if (mode === 'reversal') {
         return `${topicPrefix}What sign is this ${noun}?`;
     }
@@ -437,7 +462,7 @@ export const QuizZone: React.FC<QuizZoneProps> = ({
       </div>
       
       <div className="h-8 flex items-center justify-center mt-2 w-full max-w-xs">
-          {(category === 'alphabet' || category === 'phrases') && mode === 'normal' && questionMediaList && questionMediaList.length > 1 && (
+          {(category === 'alphabet' || category === 'phrases' || mode === 'abc-to-sign') && mode !== 'reversal' && questionMediaList && questionMediaList.length > 1 && (
             <div className="flex gap-2">
               {questionMediaList.map((_, i) => (
                 <div key={i} className={`w-3 h-3 rounded-full transition-colors duration-300 ${displayIndex === i ? 'bg-indigo-500' : 'bg-stone-300 dark:bg-stone-600'}`}></div>

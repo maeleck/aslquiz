@@ -1,14 +1,16 @@
 
+
 export interface AlphabetSign {
   letter: string;
   imageUrl: string;
 }
 
-export type Category = 'alphabet' | 'vocabulary' | 'phrases' | 'tree' | 'adventure' | 'dictionary' | 'story';
-export type SubCategory = 'quiz' | 'reversal-quiz' | 'time-attack' | 'reversal-time-attack' | 'matching';
-export type TreeSortMode = 'topic' | 'commonality';
+export type Category = 'alphabet' | 'phrases' | 'tree' | 'adventure' | 'dictionary' | 'story' | 'vocabulary';
+export type SubCategory = 'quiz' | 'reversal-quiz' | 'time-attack' | 'reversal-time-attack' | 'matching' | 'abc-to-sign';
+export type TreeSortMode = 'topic' | 'commonality' | 'wildcard';
 export type Language = 'ASL' | 'JSL' | 'LSM' | 'LSF' | 'VSL';
 export type AdventureSubCategory = 'world-map' | 'city-map' | 'job' | 'quest' | 'market';
+export type DictionaryTab = 'abc-flash' | 'challenge' | 'words' | 'alphabet' | 'collectibles';
 
 export interface VocabTopic {
     id: string;
@@ -20,7 +22,7 @@ export interface VocabTopic {
 
 export interface DictionaryEntry {
   term: string;
-  mediaUrl: string;
+  mediaUrl?: string;
   mediaType: 'image' | 'video';
 }
 

@@ -4,7 +4,7 @@ import React from 'react';
 import { Card } from './Card';
 import type { Category, SubCategory, VocabTopic } from '../types';
 import { QuestionMarkCircleIcon, StopwatchIcon, PuzzlePieceIcon, SwitchHorizontalIcon, RefreshIcon, ArrowLeftIcon } from './Icons';
-import { STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from '../constants';
+import { STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY, WORD_DICTIONARY } from '../constants';
 
 interface SubCategorySelectorProps {
   category: Category;
@@ -18,6 +18,7 @@ interface SubCategorySelectorProps {
 const allSubCategories: { id: SubCategory; label: string; description: string; icon: React.FC<{className?: string}> }[] = [
   { id: 'quiz', label: 'Quiz', description: 'Guess the {noun} from the sign.', icon: QuestionMarkCircleIcon },
   { id: 'reversal-quiz', label: 'Reversal Quiz', description: 'Guess the sign from the {noun}.', icon: SwitchHorizontalIcon },
+  { id: 'abc-to-sign', label: 'ABC to Sign', description: 'See the fingerspelling, pick the right sign.', icon: SwitchHorizontalIcon },
   { id: 'time-attack', label: 'Time Attack', description: 'Test your speed and accuracy.', icon: StopwatchIcon },
   { id: 'reversal-time-attack', label: 'Reversal Time Attack', description: 'A fast-paced reversal challenge.', icon: StopwatchIcon },
   { id: 'matching', label: 'Matching Game', description: 'Match signs to {noun}s.', icon: PuzzlePieceIcon },
@@ -40,7 +41,7 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
     let title: string;
     let wordsForLevel: string[] = [];
     const subCategories = allSubCategories.filter(sub => {
-        if (category === 'phrases' && sub.id === 'matching') return false;
+        if (category === 'phrases' && (sub.id === 'matching' || sub.id === 'abc-to-sign')) return false;
         return true;
     });
 
@@ -60,15 +61,21 @@ export const SubCategorySelector: React.FC<SubCategorySelectorProps> = ({ catego
     }
 
     const isEnabled = (subId: SubCategory) => {
+        if (category === 'alphabet') {
+            return true;
+        }
+
         if (category === 'tree' && level) {
             if (wordsForLevel.length === 0) return false;
             // The full pool of words for the level determines availability, not the random 10-word set.
-            if (subId === 'matching' && wordsForLevel.length < 8) return false;
-            if ((subId === 'reversal-quiz' || subId === 'reversal-time-attack') && wordsForLevel.length < 4) return false;
+            const playableWords = wordsForLevel.map(w => WORD_DICTIONARY.find(d => d.term.toLowerCase() === w.toLowerCase() && d.mediaUrl)).filter(Boolean);
+            const minWords = subId === 'matching' ? 8 : (['reversal-quiz', 'reversal-time-attack', 'abc-to-sign'].includes(subId) ? 4 : 0);
+            if (minWords > 0 && playableWords.length < minWords) return false;
             return true;
         }
-        if (category === 'alphabet' || category === 'vocabulary') return true;
-        if (category === 'phrases') return subId !== 'matching';
+        
+        if (category === 'vocabulary') return true; // For wildcard modes, checks happen later
+        if (category === 'phrases') return subId !== 'matching' && subId !== 'abc-to-sign';
         return false;
     }
 

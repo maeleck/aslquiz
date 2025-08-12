@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import type { Category } from '../types';
 
@@ -7,13 +9,12 @@ interface CategorySelectorProps {
 }
 
 const categories: { id: Category; label: string }[] = [
-  { id: 'tree', label: 'Tree' },
+  { id: 'dictionary', label: 'Dictionary' },
   { id: 'alphabet', label: 'Alphabet' },
-  { id: 'vocabulary', label: 'Wildcard' },
+  { id: 'tree', label: 'Tree' },
   { id: 'phrases', label: 'Phrases' },
   { id: 'story', label: 'Story' },
   { id: 'adventure', label: 'Adventure' },
-  { id: 'dictionary', label: 'Dictionary' },
 ];
 
 export const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onSelectCategory }) => {

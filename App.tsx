@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { ALPHABET, ASL_CULTURE_QUOTES, COST_PER_FACT, POINTS_PER_CORRECT_ANSWER, VOCAB_TREE, WORDS_BY_LEVEL, MAX_ALPHABET_LEVEL, WORD_DICTIONARY, PHRASES, STRUCTURED_VOCAB, VOCAB_BY_COMMONALITY } from './constants';
 import type { AlphabetSign, Category, SubCategory, VocabTopic, DictionaryEntry, Phrase, TreeSortMode, Language, AdventureSubCategory } from './types';
@@ -81,7 +83,7 @@ export default function App() {
   const [feedback, setFeedback] = useState<{ choice: string, correct: boolean } | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   
-  const [activeCategory, setActiveCategory] = useState<Category>('tree');
+  const [activeCategory, setActiveCategory] = useState<Category>('dictionary');
   const [activeSubCategory, setActiveSubCategory] = useState<SubCategory | null>(null);
   const [activeAdventureSubCategory, setActiveAdventureSubCategory] = useState<AdventureSubCategory | null>(null);
   const [activeTopic, setActiveTopic] = useState<VocabTopic | null>(null);
@@ -92,6 +94,7 @@ export default function App() {
   const [currentLevel, setCurrentLevel] = useState<number>(1);
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [language, setLanguage] = useState<Language>('ASL');
+  const [wildcardTitle, setWildcardTitle] = useState<string>('');
 
   const [timeAttackState, setTimeAttackState] = useState<TimeAttackState>(null);
 
@@ -99,7 +102,7 @@ export default function App() {
   const [currentWordSet, setCurrentWordSet] = useState<DictionaryEntry[] | null>(null);
 
   const alphabetMap = useMemo(() => new Map(ALPHABET.map(sign => [sign.letter, sign])), []);
-  const wordMap = useMemo(() => new Map(WORD_DICTIONARY.map(entry => [entry.term, entry])), []);
+  const wordMap = useMemo(() => new Map(WORD_DICTIONARY.map(entry => [entry.term.toLowerCase(), entry])), []);
   
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -188,26 +191,48 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // When user enters the main vocabulary review, prepare the word pool and initial set.
-    if (activeCategory === 'vocabulary' && !activeSubCategory) {
+    let wordPool: DictionaryEntry[] | null = null;
+    
+    if (activeCategory === 'tree' && activeVocabLevel) {
+        if (treeSortMode === 'topic' && activeTopic) {
+            const topicData = STRUCTURED_VOCAB[activeTopic.id];
+            const levelData = topicData?.levels.find(l => l.level === activeVocabLevel);
+            if (levelData) {
+                wordPool = levelData.words.map(word => wordMap.get(word.toLowerCase())).filter(Boolean) as DictionaryEntry[];
+            }
+        } else if (treeSortMode === 'commonality') {
+            const levelData = VOCAB_BY_COMMONALITY.find(l => l.level === activeVocabLevel);
+            if (levelData) {
+                wordPool = levelData.words.map(word => wordMap.get(word.toLowerCase())).filter(Boolean) as DictionaryEntry[];
+            }
+        }
+    } else if (activeCategory === 'tree' && treeSortMode === 'wildcard') {
         const unlockedWords = new Set<string>();
         unlockedTopics.forEach(topicId => {
             STRUCTURED_VOCAB[topicId]?.levels.forEach(level => {
                 level.words.forEach(word => unlockedWords.add(word));
             });
         });
-        
-        const wordPool = Array.from(unlockedWords)
-            .map(word => wordMap.get(word))
+        wordPool = Array.from(unlockedWords)
+            .map(word => wordMap.get(word.toLowerCase()))
             .filter(Boolean) as DictionaryEntry[];
-        
-        setActiveLevelWordPool(wordPool);
-        generateAndSetWordSubset(wordPool);
     }
-  }, [activeCategory, activeSubCategory, unlockedTopics, wordMap, generateAndSetWordSubset]);
+
+    if(wordPool) {
+        const playableWordPool = wordPool.filter(entry => !!entry.mediaUrl);
+        setActiveLevelWordPool(playableWordPool);
+        generateAndSetWordSubset(playableWordPool);
+    }
+  }, [activeCategory, activeTopic, activeVocabLevel, treeSortMode, unlockedTopics, wordMap, generateAndSetWordSubset]);
 
 
-  const generateNewQuestion = useCallback((category: Category, level: number, mode: 'normal' | 'reversal') => {
+  const getQuizMode = useCallback((): 'normal' | 'reversal' | 'abc-to-sign' => {
+      if (activeSubCategory === 'reversal-quiz' || activeSubCategory === 'reversal-time-attack') return 'reversal';
+      if (activeSubCategory === 'abc-to-sign') return 'abc-to-sign';
+      return 'normal';
+  }, [activeSubCategory]);
+
+  const generateNewQuestion = useCallback((category: Category, level: number, mode: 'normal' | 'reversal' | 'abc-to-sign') => {
     setIsGenerating(true);
     setIsAnswered(false);
     setFeedback(null);
@@ -219,6 +244,38 @@ export default function App() {
     setChoicePhrases([]);
     setChoices([]);
     setUserAnswer('');
+
+    if (mode === 'abc-to-sign') {
+        let vocabList: DictionaryEntry[];
+        let correctWordEntry: DictionaryEntry;
+        
+        const getPlayablePool = (words: string[]): DictionaryEntry[] => 
+            words.map(w => wordMap.get(w.toLowerCase())).filter((e): e is DictionaryEntry => !!e && !!e.mediaUrl);
+
+        if (category === 'alphabet') {
+            const wordsForLevel = WORDS_BY_LEVEL[level];
+            if (!wordsForLevel || wordsForLevel.length < 4) { setIsGenerating(false); return; }
+            vocabList = getPlayablePool(wordsForLevel);
+            if (vocabList.length < 4) { setIsGenerating(false); return; }
+            correctWordEntry = vocabList[Math.floor(Math.random() * vocabList.length)];
+        } else { // tree or vocabulary
+            if (!currentWordSet || currentWordSet.length < 4) { setIsGenerating(false); return; }
+            vocabList = currentWordSet;
+            correctWordEntry = vocabList[Math.floor(Math.random() * vocabList.length)];
+        }
+
+        const wordToSpell = correctWordEntry.term;
+        const signs = wordToSpell.split('').map(letter => alphabetMap.get(letter.toUpperCase())).filter((s): s is AlphabetSign => !!s);
+        if (signs.length !== wordToSpell.length) { generateNewQuestion(category, level, mode); return; }
+        
+        setCurrentQuestionSigns(signs);
+        setCorrectAnswer(wordToSpell);
+
+        const distractors = shuffleArray(vocabList).filter(v => v.term !== correctWordEntry.term).slice(0, 3);
+        setChoiceVocab(shuffleArray([correctWordEntry, ...distractors]));
+        setIsGenerating(false);
+        return;
+    }
 
     if (category === 'alphabet') {
         if (mode === 'reversal') {
@@ -342,15 +399,12 @@ export default function App() {
 
 
     setIsGenerating(false);
-  }, [alphabetMap, activeSubCategory, currentWordSet]);
+  }, [alphabetMap, activeSubCategory, currentWordSet, wordMap]);
 
-  const getQuizMode = useCallback((): 'normal' | 'reversal' => {
-      return activeSubCategory === 'reversal-quiz' || activeSubCategory === 'reversal-time-attack' ? 'reversal' : 'normal';
-  }, [activeSubCategory]);
-
+  
   useEffect(() => {
-    const isStandardQuiz = ['quiz', 'reversal-quiz'].includes(activeSubCategory || '');
-    const isQuizActive = ['quiz', 'reversal-quiz', 'time-attack', 'reversal-time-attack', 'matching'].includes(activeSubCategory || '');
+    const isStandardQuiz = ['quiz', 'reversal-quiz', 'abc-to-sign'].includes(activeSubCategory || '');
+    const isQuizActive = ['quiz', 'reversal-quiz', 'time-attack', 'reversal-time-attack', 'matching', 'abc-to-sign'].includes(activeSubCategory || '');
     const isPlayableCategory = ['alphabet', 'vocabulary', 'phrases', 'tree'].includes(activeCategory);
 
     if (isStandardQuiz && isPlayableCategory && !isAnswered) {
@@ -486,7 +540,7 @@ export default function App() {
   const handleResetProgress = () => {
     if (window.confirm('Are you sure you want to reset all your progress? This action cannot be undone.')) {
         setGameState(initialGameState);
-        setActiveCategory('tree');
+        setActiveCategory('dictionary');
         setActiveSubCategory(null);
         setActiveAdventureSubCategory(null);
         setActiveTopic(null);
@@ -496,34 +550,40 @@ export default function App() {
         setIsOptionsOpen(false);
         setActiveLevelWordPool(null);
         setCurrentWordSet(null);
+        setWildcardTitle('');
     }
   };
   
   const handleSelectCategory = (category: Category) => {
-      if (category === activeCategory && !['adventure', 'dictionary', 'story'].includes(category)) {
-          // Allow re-clicking tree to go back to its home
-          if (category === 'tree') {
-            setTreeSortMode(null);
-            setActiveTopic(null);
-            setActiveVocabLevel(null);
-            setActiveLevelWordPool(null);
-            setCurrentWordSet(null);
-          }
+      if (category === activeCategory && !['adventure', 'dictionary', 'story', 'tree'].includes(category)) {
           setActiveSubCategory(null);
           return;
       }
+      
+      // Keep word pool if navigating to a vocabulary quiz
+      if (category !== 'vocabulary') {
+        setActiveLevelWordPool(null);
+        setCurrentWordSet(null);
+      }
+
       setActiveCategory(category);
       setActiveSubCategory(null);
       setActiveAdventureSubCategory(null);
       setActiveTopic(null);
       setActiveVocabLevel(null);
-      setTreeSortMode(null);
       setTimeAttackState(null);
-      setActiveLevelWordPool(null);
-      setCurrentWordSet(null);
+      
+      if (category === 'tree') {
+        setTreeSortMode(null);
+      } else {
+        setWildcardTitle('');
+      }
   };
 
   const handleSelectSubCategory = (subCategory: SubCategory) => {
+    if (activeCategory === 'alphabet' && subCategory === 'abc-to-sign' && currentLevel === 1) {
+        setCurrentLevel(2);
+    }
     setActiveSubCategory(subCategory);
     setTimeAttackState(null);
   }
@@ -566,23 +626,7 @@ export default function App() {
   const handleSelectLevel = useCallback((level: number) => {
     setActiveVocabLevel(level);
     setActiveSubCategory(null);
-    
-    let wordPool: DictionaryEntry[] = [];
-    if (treeSortMode === 'topic' && activeTopic) {
-        const topicData = STRUCTURED_VOCAB[activeTopic.id];
-        const levelData = topicData?.levels.find(l => l.level === level);
-        if (levelData) {
-            wordPool = levelData.words.map(word => wordMap.get(word)).filter(Boolean) as DictionaryEntry[];
-        }
-    } else if (treeSortMode === 'commonality') {
-        const levelData = VOCAB_BY_COMMONALITY.find(l => l.level === level);
-        if (levelData) {
-             wordPool = levelData.words.map(word => wordMap.get(word)).filter(Boolean) as DictionaryEntry[];
-        }
-    }
-    setActiveLevelWordPool(wordPool);
-    generateAndSetWordSubset(wordPool);
-  }, [activeTopic, treeSortMode, wordMap, generateAndSetWordSubset]);
+  }, []);
   
   const handleBackToTreeHome = () => {
     setTreeSortMode(null);
@@ -607,6 +651,15 @@ export default function App() {
     setActiveLevelWordPool(null);
     setCurrentWordSet(null);
   }
+  
+  const handleStartTrueWildcard = useCallback(() => {
+    const playableWordPool = WORD_DICTIONARY.filter(entry => !!entry.mediaUrl);
+    
+    setActiveLevelWordPool(playableWordPool);
+    generateAndSetWordSubset(playableWordPool);
+    setWildcardTitle("True Wildcard Challenge");
+    handleSelectCategory('vocabulary');
+  }, [generateAndSetWordSubset, wordMap]);
 
   const areAllFactsCollected = collectedFacts.length === ASL_CULTURE_QUOTES.length;
 
@@ -614,8 +667,9 @@ export default function App() {
   const isTimeAttack = activeSubCategory === 'time-attack' || activeSubCategory === 'reversal-time-attack';
   
   const getTopicLabel = () => {
-    if (activeCategory === 'vocabulary') return "Wildcard Review";
+    if (activeCategory === 'vocabulary') return wildcardTitle;
     if (activeCategory !== 'tree') return undefined;
+    if (treeSortMode === 'wildcard') return "Progressive Wildcard";
     if (treeSortMode === 'topic' && activeTopic) {
         return `${activeTopic.label}${activeVocabLevel ? ` - Level ${activeVocabLevel}` : ''}`;
     }
@@ -659,7 +713,7 @@ export default function App() {
     choices, choiceSigns, choiceVocab, choicePhrases,
     handleChoiceSelection, handleWordSubmit, userAnswer,
     feedback, isAnswered, handleBackToActivities, handleNextQuestion, isGenerating,
-    correctAnswer, isTimeAttack, activeTopic, activeVocabLevel, treeSortMode
+    correctAnswer, isTimeAttack, activeTopic, activeVocabLevel, treeSortMode, wildcardTitle
   ]);
 
   const TimeAttackEndScreen: React.FC = () => (
@@ -699,11 +753,12 @@ export default function App() {
           if (!timeAttackState || !timeAttackState.isActive) return <TimeAttackStartScreen />;
         }
 
-        const currentCategoryForMatching = activeCategory === 'tree' ? 'vocabulary' : activeCategory;
+        const currentCategoryForMatching = (activeCategory === 'tree' || activeCategory === 'vocabulary') ? 'vocabulary' : activeCategory;
         
         switch (activeSubCategory) {
             case 'quiz':
             case 'reversal-quiz':
+            case 'abc-to-sign':
                 return quizComponent;
             case 'time-attack':
             case 'reversal-time-attack':
@@ -757,6 +812,10 @@ export default function App() {
             }
             return <CommonalityLevelSelectorZone onSelectLevel={handleSelectLevel} onBack={handleBackToTreeHome} />;
         }
+        if (treeSortMode === 'wildcard') {
+            if (!activeSubCategory) return <SubCategorySelector category='tree' onSelect={handleSelectSubCategory} onBack={handleBackToTreeHome} onShuffleWords={handleShuffleWords} />;
+            return renderQuizContainer();
+        }
         return <TreeHomeZone onSelect={setTreeSortMode} />;
       case 'dictionary':
         return <DictionaryZone 
@@ -766,18 +825,24 @@ export default function App() {
             onBuyFact={handleBuyFact}
             areAllFactsCollected={areAllFactsCollected}
             onViewFact={handleViewFact}
+            onStartTrueWildcard={handleStartTrueWildcard}
         />;
       case 'story':
         return <StoryZone onCorrectAnswer={handleStoryCorrectAnswer} onIncorrectAnswer={handleStoryIncorrectAnswer} />;
       
       case 'alphabet':
+        if (!activeSubCategory) {
+            return <SubCategorySelector category={activeCategory} onSelect={handleSelectSubCategory} level={currentLevel} />;
+        }
+        return renderQuizContainer();
+      
       case 'phrases':
         if (!activeSubCategory) {
             return <SubCategorySelector category={activeCategory} onSelect={handleSelectSubCategory} />;
         }
         return renderQuizContainer();
       
-      case 'vocabulary':
+      case 'vocabulary': // This is now only for wildcards
         if (!activeSubCategory) {
             return <SubCategorySelector category={activeCategory} onSelect={handleSelectSubCategory} onShuffleWords={handleShuffleWords} />;
         }
